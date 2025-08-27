@@ -37,6 +37,32 @@
     .kpi .progress{height:8px}
     footer{margin:28px 0 10px;color:var(--sub);font-size:12px;text-align:center}
     .note{font-size:12px;color:var(--sub)}
+    .char{width:88px;height:88px;border-radius:18px;background:#fff;display:grid;place-items:center;border:2px dashed #e6e6ff;overflow:hidden}
+    .char img{width:100%;height:100%;object-fit:cover;border-radius:16px}
+/* Intro 캐릭터 로테이터 */
+.rotator{
+  width: 160px;           /* 필요시 120~200px로 조절 */
+  height: 160px;
+  margin-top: 10px;
+  border-radius: 18px;
+  overflow:hidden;
+  border:2px dashed #e6e6ff;
+  background:#fff;
+  display:grid;
+  place-items:center;
+}
+.rotator img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  animation: fadeIn .35s ease;
+  border-radius:16px;
+}
+@keyframes fadeIn{
+  from{opacity:0; transform:scale(.98)}
+  to{opacity:1; transform:scale(1)}
+}
+
   </style>
 </head>
 <body>
@@ -134,12 +160,12 @@ const QUESTIONS = [
 
 // 결과 유형 정의 (6유형)
 const TYPES = {
-  VOCAB: { name: '어휘 부바', color: '#ffcf33', desc: '단어 의미와 어법에 강한 타입. 낯선 표현도 빠르게 캐치!', img: ''},
-  COMPREH: { name: '독해 부바', color: '#6dd3ff', desc: '문장의 흐름과 핵심을 파악하는 능력이 뛰어난 타입.', img: ''},
-  GRAMMAR: { name: '문법 부바', color: '#b8e986', desc: '맞춤법·띄어쓰기 등 규범에 강한 정확성 플레이어.', img: ''},
-  LOGIC: { name: '논리 부바', color: '#a78bfa', desc: '근거를 세워 판단하고 오류를 찾아내는 비판적 독자.', img: ''},
-  EXPRESSION: { name: '표현 부바', color: '#ff9ecd', desc: '풍부한 표현과 구성으로 설득력 있게 말하고 쓰는 타입.', img: ''},
-  FOCUS: { name: '집중 부바', color: '#ffad5a', desc: '몰입해서 끝까지 읽어내는 끈기와 페이스 유지가 강점.', img: ''}
+  VOCAB: { name: '어휘 부바', color: '#ffcf33', desc: '단어 의미와 어법에 강한 타입. 낯선 표현도 빠르게 캐치!', img: 'assets/character1.jpg'},
+  COMPREH: { name: '독해 부바', color: '#6dd3ff', desc: '문장의 흐름과 핵심을 파악하는 능력이 뛰어난 타입.', img: 'assets/character2.jpg'},
+  GRAMMAR: { name: '문법 부바', color: '#b8e986', desc: '맞춤법·띄어쓰기 등 규범에 강한 정확성 플레이어.', img: 'assets/character3.jpg'},
+  LOGIC: { name: '논리 부바', color: '#a78bfa', desc: '근거를 세워 판단하고 오류를 찾아내는 비판적 독자.', img: 'assets/character4.jpg'},
+  EXPRESSION: { name: '표현 부바', color: '#ff9ecd', desc: '풍부한 표현과 구성으로 설득력 있게 말하고 쓰는 타입.', img: 'assets/character5.jpg'},
+  FOCUS: { name: '집중 부바', color: '#ffad5a', desc: '몰입해서 끝까지 읽어내는 끈기와 페이스 유지가 강점.', img: 'assets/character6.jpg'}
 };
 
 // ====== 상태 ======
@@ -156,15 +182,71 @@ function render(){
 function renderIntro(){
   $app.innerHTML = `
     <section class="intro">
-      <h2>8문항으로 확인하는 나의 문해력</h2>
+      <h2>나의 문해력 유형은?</h2>
+      <div class="rotator"><img id="rotImg" alt="캐릭터 미리보기" /></div>
       <p class="meta">OX와 4지선다로 어휘·독해·문법·논리를 가볍게 점검합니다.</p>
       <div class="space"></div>
       <button class="btn" onclick="startQuiz()">시작하기</button>
       <div class="space"></div>
-      <p class="note">Tip. 결과는 6가지 캐릭터(어휘/독해/문법/논리/표현/집중) 중 하나로 제공됩니다.</p>
+      <p class="note">결과는 6가지 캐릭터(어휘/독해/문법/논리/표현/집중) 중 하나로 제공됩니다.</p>
     </section>
   `;
+  startRotator(); // ★ 추가: 로테이터 시작
 }
+// ====== Intro 캐릭터 로테이터 ======
+let introTimer = null;
+const INTRO_IMAGES = [
+  'assets/character1.jpeg',
+  'assets/character2.jpeg',
+  'assets/character3.jpeg',
+  'assets/character4.jpeg',
+  'assets/character5.jpeg',
+  'assets/character6.jpeg'
+];
+
+// 이미지 프리로드 + jpg 폴백 지원
+function preloadIntroImages() {
+  INTRO_IMAGES.forEach((src, i) => {
+    const img = new Image();
+    img.onerror = () => {
+      // jpeg가 없으면 jpg 시도
+      const jpg = src.replace('.jpeg', '.jpg');
+      INTRO_IMAGES[i] = jpg;
+      const fix = new Image();
+      fix.src = jpg;
+    };
+    img.src = src;
+  });
+}
+
+function startRotator(){
+  preloadIntroImages();
+  const el = document.getElementById('rotImg');
+  if(!el) return;
+
+  let idx = 0;
+  const setImage = () => {
+    el.src = INTRO_IMAGES[idx];
+    el.onerror = function(){
+      // 남아있는 확장자 이슈 대비: jpeg↔jpg 양방향 폴백
+      const nextTry = el.src.endsWith('.jpeg') ? el.src.replace('.jpeg','.jpg') : el.src.replace('.jpg','.jpeg');
+      if(nextTry !== el.src){ el.src = nextTry; }
+    };
+    idx = (idx + 1) % INTRO_IMAGES.length;
+  };
+  setImage();
+  clearInterval(introTimer);
+  introTimer = setInterval(setImage, 900); // 전환 간격(ms) 조절 가능
+}
+
+// 퀴즈로 넘어갈 때 타이머 정리
+function startQuiz(){
+  if(introTimer){ clearInterval(introTimer); introTimer = null; }
+  state.step='quiz';
+  state.index=0; state.answers=Array(QUESTIONS.length).fill(null);
+  render();
+}
+
 
 function startQuiz(){
   state.step='quiz';
@@ -256,13 +338,16 @@ function renderResult(){
   $app.innerHTML = `
     <section class="result">
       <div class="hero">
-        <div class="char" style="border-color:${t.color}">🧩</div>
+        <div class="char" style="border-color:${t.color}">
+          <img src="${t.img}" alt="${t.name}" onerror="this.replaceWith(document.createTextNode('🧩'));">
+        </div>
         <div>
           <div class="pill" style="background:${t.color}22;color:${t.color}">당신의 캐릭터</div>
           <h2 style="margin:.2rem 0 0">${t.name}</h2>
           <p class="meta" style="margin:.35rem 0 0">총점 ${detail.totalScore} / ${QUESTIONS.length}</p>
         </div>
       </div>
+
       <p style="margin:8px 0 0">${t.desc}</p>
 
       <div class="space"></div>
@@ -281,7 +366,10 @@ function renderResult(){
       </div>
 
       <div class="space"></div>
-      <a class="btn secondary" href="#" onclick="alert('앱 체험 링크를 연결하세요!');return false;">👉 글랑 앱에서 심화 테스트</a>
+      <a class="btn secondary" href="#" onclick="goToStore();return false;">
+        👉 글랑 앱에서 심화 테스트
+      </a>
+
 
       <div class="space"></div>
       <details>
@@ -299,6 +387,20 @@ function shareResult(name, score){
   const url = location.href;
   if(navigator.share){ navigator.share({title: '글랑 문해력 테스트', text, url}).catch(()=>{}); }
   else { navigator.clipboard.writeText(`${text} ${url}`).then(()=>alert('결과 링크를 클립보드에 복사했어요!')); }
+}
+function goToStore(){
+  const ua = navigator.userAgent || navigator.vendor || window.opera;
+  
+  if (/android/i.test(ua)) {
+    // 안드로이드 → 플레이스토어
+    window.location.href = "https://play.google.com/store/apps/details?id=com.zero.glang&pcampaignid=web_share";
+  } else if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+    // iOS → 앱스토어
+    window.location.href = "https://apps.apple.com/kr/app/%EA%B8%80%EB%9E%91-glang/id6740841063";
+  } else {
+    // PC 및 기타 환경 → Google Play 웹 링크
+    window.location.href = "https://play.google.com/store/apps/details?id=com.zero.glang&pcampaignid=web_share";
+  }
 }
 
 function escapeHTML(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c])); }
