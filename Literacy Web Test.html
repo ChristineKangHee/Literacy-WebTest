@@ -4,6 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>글랑 문해력 유형 테스트</title>
+  <!-- 📌 공유 최적화 (Open Graph, Twitter, Kakao) -->
+  <meta name="description" content="8문항으로 확인하는 나의 문해력 캐릭터! 1분 만에 OX & 객관식으로 진단하고 글랑 앱에서 심화 학습을 이어가세요." />
+  <meta property="og:title" content="글랑 문해력 유형 테스트 – 나의 문해력 캐릭터 찾기" />
+  <meta property="og:description" content="8문항 문해력 테스트로 나의 읽기 강점을 확인하고, 6가지 부바 캐릭터 중 나와 맞는 유형을 만나보세요!" />
+  <meta property="og:image" content="https://glang.app/assets/og/literacy-test_1200x630.png" />
+  <meta property="og:url" content="https://glang.app/literacy-test" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="글랑 문해력 유형 테스트 – 나의 문해력 캐릭터 찾기" />
+  <meta name="twitter:description" content="1분 컷 문해력 테스트 · 어휘/독해/문법/논리 진단 & 6가지 캐릭터 결과" />
+  <meta name="twitter:image" content="https://glang.app/assets/og/literacy-test_1200x630.png" />
+  <!-- 카카오톡 썸네일 최적화 -->
+  <meta property="og:site_name" content="글랑(GLANG)" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <style>
     :root{--bg:#faf9ff;--card:#ffffff;--ink:#1f2340;--sub:#6a6f8b;--brand:#6c63ff;--ok:#00b894;--warn:#ffb703;--bad:#ef476f}
     *{box-sizing:border-box}
@@ -160,12 +176,12 @@ const QUESTIONS = [
 
 // 결과 유형 정의 (6유형)
 const TYPES = {
-  VOCAB: { name: '어휘 부바', color: '#ffcf33', desc: '단어 의미와 어법에 강한 타입. 낯선 표현도 빠르게 캐치!', img: 'assets/character1.jpg'},
-  COMPREH: { name: '독해 부바', color: '#6dd3ff', desc: '문장의 흐름과 핵심을 파악하는 능력이 뛰어난 타입.', img: 'assets/character2.jpg'},
-  GRAMMAR: { name: '문법 부바', color: '#b8e986', desc: '맞춤법·띄어쓰기 등 규범에 강한 정확성 플레이어.', img: 'assets/character3.jpg'},
-  LOGIC: { name: '논리 부바', color: '#a78bfa', desc: '근거를 세워 판단하고 오류를 찾아내는 비판적 독자.', img: 'assets/character4.jpg'},
-  EXPRESSION: { name: '표현 부바', color: '#ff9ecd', desc: '풍부한 표현과 구성으로 설득력 있게 말하고 쓰는 타입.', img: 'assets/character5.jpg'},
-  FOCUS: { name: '집중 부바', color: '#ffad5a', desc: '몰입해서 끝까지 읽어내는 끈기와 페이스 유지가 강점.', img: 'assets/character6.jpg'}
+  VOCAB: { name: '어휘 마스터', color: '#ffcf33', desc: '단어 의미와 어법에 강한 타입. 낯선 표현도 빠르게 캐치!', img: 'assets/character1.jpg'},
+  COMPREH: { name: '독해 탐색자', color: '#6dd3ff', desc: '문장의 흐름과 핵심을 파악하는 능력이 뛰어난 타입.', img: 'assets/character2.jpg'},
+  GRAMMAR: { name: '문법 가디언', color: '#b8e986', desc: '맞춤법·띄어쓰기 등 규범에 강한 정확성 플레이어.', img: 'assets/character3.jpg'},
+  LOGIC: { name: '논리 크리티커', color: '#a78bfa', desc: '근거를 세워 판단하고 오류를 찾아내는 비판적 독자.', img: 'assets/character4.jpg'},
+  EXPRESSION: { name: '표현 크리에이터', color: '#ff9ecd', desc: '풍부한 표현과 구성으로 설득력 있게 말하고 쓰는 타입.', img: 'assets/character5.jpg'},
+  FOCUS: { name: '집중 파이터', color: '#ffad5a', desc: '몰입해서 끝까지 읽어내는 끈기와 페이스 유지가 강점.', img: 'assets/character6.jpg'}
 };
 
 // ====== 상태 ======
