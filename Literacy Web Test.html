@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>글랑 문해력 유형 테스트</title>
+  <style>
+    :root{--bg:#faf9ff;--card:#ffffff;--ink:#1f2340;--sub:#6a6f8b;--brand:#6c63ff;--ok:#00b894;--warn:#ffb703;--bad:#ef476f}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Pretendard,sans-serif}
+    .wrap{max-width:860px;margin:0 auto;padding:20px}
+    header{display:flex;align-items:center;gap:10px;margin:10px 0 18px}
+    header .logo{width:36px;height:36px;border-radius:10px;background:var(--brand);display:grid;place-items:center;color:#fff;font-weight:800}
+    h1{font-size:22px;margin:0}
+    .card{background:var(--card);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.06);padding:20px}
+    .intro h2{margin-top:0}
+    .meta{color:var(--sub);font-size:14px}
+    .btn{appearance:none;border:0;border-radius:12px;padding:14px 16px;background:var(--brand);color:#fff;font-weight:700;cursor:pointer}
+    .btn.secondary{background:#e9e8ff;color:#3f3aeb}
+    .btn.ghost{background:transparent;border:2px solid var(--brand);color:var(--brand)}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .space{height:12px}
+    .progress{height:10px;background:#ececff;border-radius:999px;overflow:hidden}
+    .bar{height:100%;width:0;background:linear-gradient(90deg,#6c63ff,#9a93ff)}
+    .q-title{font-size:18px;font-weight:700}
+    .choices{display:grid;gap:10px;margin-top:14px}
+    .choice{display:flex;align-items:flex-start;gap:10px;border:2px solid #ececff;border-radius:12px;padding:12px;cursor:pointer;transition:all .15s}
+    .choice:hover{border-color:#d7d6ff;background:#fbfbff}
+    .choice input{margin-top:4px}
+    .pill{display:inline-block;border-radius:999px;padding:4px 10px;background:#eef0ff;color:#3f3aeb;font-size:12px;font-weight:700;margin-left:6px}
+    .result{display:grid;gap:14px}
+    .result .hero{display:flex;gap:16px;align-items:center}
+    .char{width:88px;height:88px;border-radius:18px;background:#fff;display:grid;place-items:center;border:2px dashed #e6e6ff}
+    .kpi{display:grid;gap:8px}
+    .kpi-row{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center}
+    .kpi .progress{height:8px}
+    footer{margin:28px 0 10px;color:var(--sub);font-size:12px;text-align:center}
+    .note{font-size:12px;color:var(--sub)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">G</div>
+      <div>
+        <h1>문해력 유형 테스트</h1>
+        <div class="meta">8문항 · OX & 4지선다 · 1분컷</div>
+      </div>
+    </header>
+
+    <main class="card" id="app">
+      <!-- Content renders here -->
+    </main>
+    <footer>© GLANG · Literacy mini test for promo</footer>
+  </div>
+
+<script>
+// ====== 데이터 정의 ======
+const QUESTIONS = [
+  {
+    id: 1,
+    area: '어휘',
+    type: 'OX',
+    text: "‘사흘 뒤’는 오늘이 1일이라면 3일이다.",
+    options: ['O','X'],
+    answer: 0, // O
+    weights: { VOCAB: 1, FOCUS: 0.2 }
+  },
+  {
+    id: 2,
+    area: '어휘',
+    type: '4지선다',
+    text: "‘금일’의 의미로 알맞은 것은?",
+    options: ['오늘','내일','이번 주','요즘'],
+    answer: 0,
+    weights: { VOCAB: 1 }
+  },
+  {
+    id: 3,
+    area: '독해',
+    type: '4지선다',
+    text: "아래 글을 읽고 핵심을 고르세요.\n‘어떤 사람은 짧은 글은 잘 이해하지만 긴 글에서는 핵심을 놓친다. 이런 경우 꾸준히 요약 훈련을 하는 것이 도움이 된다.’",
+    options: ['긴 글은 읽지 말자','요약 훈련이 필요하다','모든 글을 똑같이 읽어야 한다','짧은 글은 쉬운 글이다'],
+    answer: 1,
+    weights: { COMPREH: 1, LOGIC: 0.3 }
+  },
+  {
+    id: 4,
+    area: '독해',
+    type: 'OX',
+    text: "‘배가 고파서 밥을 먹었다’에서 원인은 ‘배가 고파서’이고 결과는 ‘밥을 먹었다’이다.",
+    options: ['O','X'],
+    answer: 0,
+    weights: { COMPREH: 1 }
+  },
+  {
+    id: 5,
+    area: '문법',
+    type: '4지선다',
+    text: "다음 중 맞는 표기는?",
+    options: ['할 수 있다','할수있다','할수 있다','할 수있다'],
+    answer: 0,
+    weights: { GRAMMAR: 1, EXPRESSION: 0.3 }
+  },
+  {
+    id: 6,
+    area: '문법',
+    type: 'OX',
+    text: "‘먹을께’가 맞는 표현이다.",
+    options: ['O','X'],
+    answer: 1, // X
+    weights: { GRAMMAR: 1 }
+  },
+  {
+    id: 7,
+    area: '논리',
+    type: '4지선다',
+    text: "‘모든 새는 날 수 있다. 펭귄은 새다. 따라서 펭귄은 날 수 있다.’의 문제점은?",
+    options: ['사실과 의견이 섞였다','전제가 잘못됐다','논리적으로 완벽하다','결론이 적절하다'],
+    answer: 1,
+    weights: { LOGIC: 1 }
+  },
+  {
+    id: 8,
+    area: '종합',
+    type: '4지선다',
+    text: "다음 중 문해력의 정의로 가장 적절한 것은?",
+    options: ['글을 읽고 쓸 수 있는 능력','읽고 이해·비판·표현하는 종합 능력','글자를 많이 아는 능력','긴 글을 끝까지 읽는 끈기'],
+    answer: 1,
+    weights: { LOGIC: 0.7, COMPREH: 0.3 }
+  }
+];
+
+// 결과 유형 정의 (6유형)
+const TYPES = {
+  VOCAB: { name: '어휘 부바', color: '#ffcf33', desc: '단어 의미와 어법에 강한 타입. 낯선 표현도 빠르게 캐치!', img: ''},
+  COMPREH: { name: '독해 부바', color: '#6dd3ff', desc: '문장의 흐름과 핵심을 파악하는 능력이 뛰어난 타입.', img: ''},
+  GRAMMAR: { name: '문법 부바', color: '#b8e986', desc: '맞춤법·띄어쓰기 등 규범에 강한 정확성 플레이어.', img: ''},
+  LOGIC: { name: '논리 부바', color: '#a78bfa', desc: '근거를 세워 판단하고 오류를 찾아내는 비판적 독자.', img: ''},
+  EXPRESSION: { name: '표현 부바', color: '#ff9ecd', desc: '풍부한 표현과 구성으로 설득력 있게 말하고 쓰는 타입.', img: ''},
+  FOCUS: { name: '집중 부바', color: '#ffad5a', desc: '몰입해서 끝까지 읽어내는 끈기와 페이스 유지가 강점.', img: ''}
+};
+
+// ====== 상태 ======
+let state = { step: 'intro', index: 0, answers: Array(QUESTIONS.length).fill(null) };
+
+const $app = document.getElementById('app');
+
+function render(){
+  if(state.step==='intro') return renderIntro();
+  if(state.step==='quiz') return renderQuiz();
+  if(state.step==='result') return renderResult();
+}
+
+function renderIntro(){
+  $app.innerHTML = `
+    <section class="intro">
+      <h2>8문항으로 확인하는 나의 문해력</h2>
+      <p class="meta">OX와 4지선다로 어휘·독해·문법·논리를 가볍게 점검합니다.</p>
+      <div class="space"></div>
+      <button class="btn" onclick="startQuiz()">시작하기</button>
+      <div class="space"></div>
+      <p class="note">Tip. 결과는 6가지 캐릭터(어휘/독해/문법/논리/표현/집중) 중 하나로 제공됩니다.</p>
+    </section>
+  `;
+}
+
+function startQuiz(){
+  state.step='quiz';
+  state.index=0; state.answers=Array(QUESTIONS.length).fill(null);
+  render();
+}
+
+function renderQuiz(){
+  const q = QUESTIONS[state.index];
+  const total = QUESTIONS.length;
+  const progress = ((state.index)/total)*100;
+  const selected = state.answers[state.index];
+  $app.innerHTML = `
+    <div class="meta">문항 ${state.index+1} / ${total} · ${q.area} · ${q.type}</div>
+    <div class="progress" aria-label="진행률"><div class="bar" style="width:${progress}%"></div></div>
+    <div class="space"></div>
+    <div class="q-title">${escapeHTML(q.text).replace(/\n/g,'<br>')}</div>
+    <div class="choices" role="group" aria-label="선택지">
+      ${q.options.map((opt,i)=>`
+        <label class="choice">
+          <input type="radio" name="q${q.id}" ${selected===i?'checked':''} onchange="choose(${i})" />
+          <div><div>${escapeHTML(opt)}</div></div>
+        </label>
+      `).join('')}
+    </div>
+    <div class="space"></div>
+    <div class="row">
+      <button class="btn secondary" ${state.index===0?'disabled':''} onclick="prev()">이전</button>
+      <button class="btn" ${selected==null?'disabled':''} onclick="next()">${state.index===total-1?'결과보기':'다음'}</button>
+    </div>
+  `;
+}
+
+function choose(i){
+  state.answers[state.index]=i; render();
+}
+function prev(){ state.index=Math.max(0,state.index-1); render(); }
+function next(){
+  if(state.index===QUESTIONS.length-1){
+    state.step='result';
+    render();
+  } else { state.index++; render(); }
+}
+
+function scoreDetail(){
+  // 영역별 가중치 합산 (정답만 반영)
+  const buckets = { VOCAB:0, COMPREH:0, GRAMMAR:0, LOGIC:0, EXPRESSION:0, FOCUS:0 };
+  const correctFlags = [];
+  QUESTIONS.forEach((q,idx)=>{
+    const ok = state.answers[idx]===q.answer;
+    correctFlags[idx]=ok;
+    if(ok){
+      for(const k in q.weights){ buckets[k]+=q.weights[k]; }
+    }
+  });
+  const totalScore = correctFlags.filter(Boolean).length;
+  return { buckets, totalScore, correctFlags };
+}
+
+function pickType(detail){
+  // 최댓값 유형 선택, 동점 시 우선순위: COMPREH > VOCAB > GRAMMAR > LOGIC > EXPRESSION > FOCUS
+  const order = ['COMPREH','VOCAB','GRAMMAR','LOGIC','EXPRESSION','FOCUS'];
+  let winner = 'FOCUS', best = -1;
+  for(const k of order){
+    const v = detail.buckets[k];
+    if(v>best){ best=v; winner=k; }
+  }
+  // 매우 높은 총점이면 논리 부바 보정
+  if(detail.totalScore>=7){ winner='LOGIC'; }
+  return winner;
+}
+
+function renderResult(){
+  const detail = scoreDetail();
+  const winnerKey = pickType(detail);
+  const t = TYPES[winnerKey];
+
+  // 영역별 진행바 데이터
+  const pretty = [
+    ['어휘', detail.buckets.VOCAB],
+    ['독해', detail.buckets.COMPREH],
+    ['문법', detail.buckets.GRAMMAR],
+    ['논리', detail.buckets.LOGIC],
+    ['표현', detail.buckets.EXPRESSION],
+    ['집중', detail.buckets.FOCUS],
+  ];
+  const maxBar = Math.max(...pretty.map(p=>p[1]), 1);
+
+  $app.innerHTML = `
+    <section class="result">
+      <div class="hero">
+        <div class="char" style="border-color:${t.color}">🧩</div>
+        <div>
+          <div class="pill" style="background:${t.color}22;color:${t.color}">당신의 캐릭터</div>
+          <h2 style="margin:.2rem 0 0">${t.name}</h2>
+          <p class="meta" style="margin:.35rem 0 0">총점 ${detail.totalScore} / ${QUESTIONS.length}</p>
+        </div>
+      </div>
+      <p style="margin:8px 0 0">${t.desc}</p>
+
+      <div class="space"></div>
+      <h3 style="margin:0">영역별 프로파일</h3>
+      <div class="kpi">
+        ${pretty.map(([label,val])=>{
+          const pct = Math.round((val/maxBar)*100);
+          return `<div class=\"kpi-row\"><div class=\"meta\">${label}</div><div class=\"progress\"><div class=\"bar\" style=\"width:${pct}%;background:${t.color}\"></div></div></div>`
+        }).join('')}
+      </div>
+
+      <div class="space"></div>
+      <div class="row">
+        <button class="btn" onclick="shareResult('${t.name}', ${detail.totalScore})">결과 공유하기</button>
+        <button class="btn ghost" onclick="startQuiz()">다시 풀기</button>
+      </div>
+
+      <div class="space"></div>
+      <a class="btn secondary" href="#" onclick="alert('앱 체험 링크를 연결하세요!');return false;">👉 글랑 앱에서 심화 테스트</a>
+
+      <div class="space"></div>
+      <details>
+        <summary>정답 해설 보기</summary>
+        <ol>
+          ${QUESTIONS.map((q,i)=>`<li><strong>Q${i+1}</strong> 정답: ${q.options[q.answer]}</li>`).join('')}
+        </ol>
+      </details>
+    </section>
+  `;
+}
+
+function shareResult(name, score){
+  const text = `나는 ${name}! (총점 ${score}/${QUESTIONS.length}) — 글랑 문해력 미니 테스트`;
+  const url = location.href;
+  if(navigator.share){ navigator.share({title: '글랑 문해력 테스트', text, url}).catch(()=>{}); }
+  else { navigator.clipboard.writeText(`${text} ${url}`).then(()=>alert('결과 링크를 클립보드에 복사했어요!')); }
+}
+
+function escapeHTML(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c])); }
+
+render();
+</script>
+</body>
+</html>
