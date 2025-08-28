@@ -174,15 +174,46 @@ const QUESTIONS = [
   }
 ];
 
-// 결과 유형 정의 (6유형)
+// 결과 유형 정의 (6유형) — desc를 [글 형식] 톤으로 개편
 const TYPES = {
-  VOCAB: { name: '어휘 마스터', color: '#ffcf33', desc: '단어 의미와 어법에 강한 타입. 낯선 표현도 빠르게 캐치!', img: 'assets/character1.jpg'},
-  COMPREH: { name: '독해 탐색자', color: '#6dd3ff', desc: '문장의 흐름과 핵심을 파악하는 능력이 뛰어난 타입.', img: 'assets/character2.jpg'},
-  GRAMMAR: { name: '문법 가디언', color: '#b8e986', desc: '맞춤법·띄어쓰기 등 규범에 강한 정확성 플레이어.', img: 'assets/character3.jpg'},
-  LOGIC: { name: '논리 크리티커', color: '#a78bfa', desc: '근거를 세워 판단하고 오류를 찾아내는 비판적 독자.', img: 'assets/character4.jpg'},
-  EXPRESSION: { name: '표현 크리에이터', color: '#ff9ecd', desc: '풍부한 표현과 구성으로 설득력 있게 말하고 쓰는 타입.', img: 'assets/character5.jpg'},
-  FOCUS: { name: '집중 파이터', color: '#ffad5a', desc: '몰입해서 끝까지 읽어내는 끈기와 페이스 유지가 강점.', img: 'assets/character6.jpg'}
+  VOCAB: { 
+    name: '어휘 마스터', 
+    color: '#ffcf33', 
+    desc: '낯선 단어를 보면 호기심이 먼저 올라오는 당신!<br>뜻과 뉘앙스를 쓱 캐치하고, 비슷한 표현도 깔끔히 구분해요.<br>친구들이 헷갈리는 말뜻 물어볼 때 해결사로 활약하죠!<br>가끔 디테일에 몰입해 큰 흐름을 놓칠 수 있지만, 한 번 정리하면 오래 가요.<br>단어장·하이라이트·짤막 메모가 딱 맞는 루틴이에요.<br>오늘의 신조어도 금방 내 것으로 만드는 어휘 고수!', 
+    img: 'assets/character1.jpg'
+  },
+  COMPREH: { 
+    name: '독해 탐색자', 
+    color: '#6dd3ff', 
+    desc: '글의 구조와 요지를 번쩍 포착하는 당신!<br>“그래서 핵심은?” 한 줄 요약에 강해요.<br>문단 간 연결과 원인–결과를 깔끔히 잡아내죠.<br>때로는 세부보다 큰 그림을 먼저 보는 편이라, 근거만 살짝 보강하면 금상첨화!<br>마인드맵·키워드 카드·문단표시가 찰떡 보조 장비예요.<br>긴 글도 방향 잃지 않는 든든한 항해사!', 
+    img: 'assets/character2.jpg'
+  },
+  GRAMMAR: { 
+    name: '문법 가디언', 
+    color: '#b8e986', 
+    desc: '맞춤법 레이더가 자동 작동되는 정확성 플레이어!<br>어색한 띄어쓰기나 문장 보면 바로 다듬고 싶어져요.<br>규범을 지켜 문서 퀄리티를 한 단계 끌어올리는 타입이죠.<br>가끔 창의적 표현 앞에서 멈칫할 수 있지만, 기준 위에 변주를 얹으면 최고!<br>교정·체크리스트·예문 수집이 성향과 찰떡궁합.<br>팀의 글을 든든히 지키는 문법 수호자!', 
+    img: 'assets/character3.jpg'
+  },
+  LOGIC: { 
+    name: '논리 크리티커', 
+    color: '#a78bfa', 
+    desc: '주장엔 근거, 예외엔 반례! 허점을 날카롭게 포착하는 비판적 독자예요.<br>주장–근거–결론 구조로 설득의 흐름을 견고하게 만듭니다.<br>데이터 검증을 즐기고, 감정적 수사는 최소화하는 쿨한 타입!<br>가끔 냉정해 보일 수 있으니 따뜻한 예시를 곁들이면 완벽해요.<br>토론·팩트체크·근거표 만들기에 진가를 발휘해요.<br>읽기를 생각으로, 생각을 논리로 바꾸는 설계자!', 
+    img: 'assets/character4.jpg'
+  },
+  EXPRESSION: { 
+    name: '표현 크리에이터', 
+    color: '#ff9ecd', 
+    desc: '아이디어를 매력적으로 포장하는 스토리텔러!<br>어휘 선택과 문장 리듬이 살아 있어 읽는 재미를 끌어올려요.<br>비유와 사례로 공감을 이끌고, 구성으로 흐름을 잡는 능력자죠.<br>때로는 디테일 근거가 아쉬울 수 있어요—팩트 체크만 더하면 금상첨화!<br>에세이·발표·카피라이팅 미션에서 빛나요.<br>당신의 문장은 골라 읽는 글을 ‘읽고 싶어지는 글’로 바꿉니다!', 
+    img: 'assets/character5.jpg'
+  },
+  FOCUS: { 
+    name: '집중 파이터', 
+    color: '#ffad5a', 
+    desc: '한 번 몰입하면 끝까지! 긴 글도 페이스를 유지하며 완독하는 끈기왕!<br>방해 요소를 차단하고 루틴을 만드는 데 탁월해요.<br>타이머·체크리스트·작은 목표로 꾸준히 전진하죠.<br>가끔 속도에 집중해 핵심 표시를 놓칠 수 있으니 요약·키워드 표시를 곁들이면 효율 UP!<br>챌린지·연속 코스 미션에서 진가 폭발!<br>오늘도 한 페이지, 내일은 한 챕터—꾸준함이 실력을 만듭니다.', 
+    img: 'assets/character6.jpg'
+  }
 };
+
 
 // ====== 상태 ======
 let state = { step: 'intro', index: 0, answers: Array(QUESTIONS.length).fill(null) };
