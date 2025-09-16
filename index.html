@@ -100,13 +100,14 @@
 <script>
 // ====== 데이터 정의 ======
 const QUESTIONS = [
+    // QUESTIONS[0] 교체
   {
     id: 1,
     area: '어휘',
     type: 'OX',
-    text: "‘사흘 뒤’는 오늘이 1일이라면 3일이다.",
+    text: "‘사흘 뒤’는 오늘이 1일이라면 5일이다.", // 의도적으로 틀린 진술
     options: ['O','X'],
-    answer: 0, // O
+    answer: 1, // X
     weights: { VOCAB: 1, FOCUS: 0.2 }
   },
   {
