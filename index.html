@@ -1,458 +1,369 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>글랑 문해력 유형 테스트</title>
-  <!-- 📌 공유 최적화 (Open Graph, Twitter, Kakao) -->
-  <meta name="description" content="8문항으로 확인하는 나의 문해력 캐릭터! 1분 만에 OX & 객관식으로 진단하고 글랑 앱에서 심화 학습을 이어가세요." />
-  <meta property="og:title" content="글랑 문해력 유형 테스트 – 나의 문해력 캐릭터 찾기" />
-  <meta property="og:description" content="8문항 문해력 테스트로 나의 읽기 강점을 확인하고, 6가지 부바 캐릭터 중 나와 맞는 유형을 만나보세요!" />
-  <meta property="og:image" content="https://glang.app/assets/og/literacy-test_1200x630.png" />
-  <meta property="og:url" content="https://glang.app/literacy-test" />
-  <meta property="og:type" content="website" />
-  <meta property="og:locale" content="ko_KR" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="글랑 문해력 유형 테스트 – 나의 문해력 캐릭터 찾기" />
-  <meta name="twitter:description" content="1분 컷 문해력 테스트 · 어휘/독해/문법/논리 진단 & 6가지 캐릭터 결과" />
-  <meta name="twitter:image" content="https://glang.app/assets/og/literacy-test_1200x630.png" />
-  <!-- 카카오톡 썸네일 최적화 -->
-  <meta property="og:site_name" content="글랑(GLANG)" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <style>
-    :root{--bg:#faf9ff;--card:#ffffff;--ink:#1f2340;--sub:#6a6f8b;--brand:#6c63ff;--ok:#00b894;--warn:#ffb703;--bad:#ef476f}
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Pretendard,sans-serif}
-    .wrap{max-width:860px;margin:0 auto;padding:20px}
-    header{display:flex;align-items:center;gap:10px;margin:10px 0 18px}
-    header .logo{width:36px;height:36px;border-radius:10px;background:var(--brand);display:grid;place-items:center;color:#fff;font-weight:800}
-    h1{font-size:22px;margin:0}
-    .card{background:var(--card);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.06);padding:20px}
-    .intro h2{margin-top:0}
-    .meta{color:var(--sub);font-size:14px}
-    .btn{appearance:none;border:0;border-radius:12px;padding:14px 16px;background:var(--brand);color:#fff;font-weight:700;cursor:pointer}
-    .btn.secondary{background:#e9e8ff;color:#3f3aeb}
-    .btn.ghost{background:transparent;border:2px solid var(--brand);color:var(--brand)}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    .space{height:12px}
-    .progress{height:10px;background:#ececff;border-radius:999px;overflow:hidden}
-    .bar{height:100%;width:0;background:linear-gradient(90deg,#6c63ff,#9a93ff)}
-    .q-title{font-size:18px;font-weight:700}
-    .choices{display:grid;gap:10px;margin-top:14px}
-    .choice{display:flex;align-items:flex-start;gap:10px;border:2px solid #ececff;border-radius:12px;padding:12px;cursor:pointer;transition:all .15s}
-    .choice:hover{border-color:#d7d6ff;background:#fbfbff}
-    .choice input{margin-top:4px}
-    .pill{display:inline-block;border-radius:999px;padding:4px 10px;background:#eef0ff;color:#3f3aeb;font-size:12px;font-weight:700;margin-left:6px}
-    .result{display:grid;gap:14px}
-    .result .hero{display:flex;gap:16px;align-items:center}
-    .char{width:88px;height:88px;border-radius:18px;background:#fff;display:grid;place-items:center;border:2px dashed #e6e6ff}
-    .kpi{display:grid;gap:8px}
-    .kpi-row{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center}
-    .kpi .progress{height:8px}
-    footer{margin:28px 0 10px;color:var(--sub);font-size:12px;text-align:center}
-    .note{font-size:12px;color:var(--sub)}
-    .char{width:88px;height:88px;border-radius:18px;background:#fff;display:grid;place-items:center;border:2px dashed #e6e6ff;overflow:hidden}
-    .char img{width:100%;height:100%;object-fit:cover;border-radius:16px}
-/* Intro 캐릭터 로테이터 */
-.rotator{
-  width: 160px;           /* 필요시 120~200px로 조절 */
-  height: 160px;
-  margin-top: 10px;
-  border-radius: 18px;
-  overflow:hidden;
-  border:2px dashed #e6e6ff;
-  background:#fff;
-  display:grid;
-  place-items:center;
-}
-.rotator img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  animation: fadeIn .35s ease;
-  border-radius:16px;
-}
-@keyframes fadeIn{
-  from{opacity:0; transform:scale(.98)}
-  to{opacity:1; transform:scale(1)}
-}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>글랑 문해력 미니 테스트</title>
+<style>
+  :root{
+    --tap: 44px; /* 모바일 접근성 최소 터치 크기 */
+  }
+  html,body{height:100%;margin:0;background:#E5E8F1;}
+  body{display:flex;align-items:center;justify-content:center;}
+  /* 화면 컨테이너: 내부 비율 유지 + 이미지 꽉 채우기 */
+  .stage{
+    position:relative;
+    width:min(100vw, 768px);
+    height:100svh;          /* iOS safe area 반영 */
+    max-height:1600px;      /* 데스크탑 긴 화면에서 과도 확장 방지 */
+    overflow:hidden;
+    background:#E5E8F1;
+  }
+  .bg{
+    position:absolute; inset:0;
+    background:#E5E8F1 center/contain no-repeat;
+  }
+  /* 핫스팟: 투명 버튼 */
+  .hotspot{
+    position:absolute;
+    display:block;
+    border:none; background:transparent; padding:0; margin:0;
+    cursor:pointer;
+    /* iOS 클릭 편의 */
+    min-width:var(--tap); min-height:var(--tap);
+    touch-action:manipulation;
+  }
+  /* 접근성: 포커스 링 */
+  .hotspot:focus-visible{ outline:2px dashed rgba(40,120,255,.8); outline-offset:2px; border-radius:12px; }
 
-  </style>
+  /* 디버그 모드: ?debug=1 또는 키보드 D */
+  .debug .hotspot{ outline:1px dashed rgba(0,0,0,.25); background:rgba(0,128,255,.08); }
+  .debug .hotspot::after{
+    content:attr(aria-label);
+    position:absolute; left:0; top:-1.6em;
+    font:600 12px/1.2 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;
+    color:#0b61ff; background:#fff; border:1px solid #cfe3ff; border-radius:6px; padding:.15em .4em;
+    white-space:nowrap; pointer-events:none;
+  }
+
+  /* 하단 토스트(정답/선택 피드백 - 필요 시) */
+  .toast{
+    position:absolute; left:50%; transform:translateX(-50%);
+    bottom:18px; padding:.7em 1em; border-radius:10px;
+    font:600 14px/1.2 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;
+    color:#1b2b4a; background:#fff; box-shadow:0 8px 32px rgba(0,0,0,.08);
+    display:none;
+  }
+  .toast.show{ display:block; }
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="logo">G</div>
-      <div>
-        <h1>문해력 유형 테스트</h1>
-        <div class="meta">8문항 · OX & 4지선다 · 1분컷</div>
-      </div>
-    </header>
-
-    <main class="card" id="app">
-      <!-- Content renders here -->
-    </main>
-    <footer>© GLANG · Literacy mini test for promo</footer>
-  </div>
+  <main id="app" class="stage" aria-live="polite">
+    <div id="bg" class="bg"></div>
+    <!-- JS가 hotspot 버튼을 주입합니다 -->
+    <div id="toast" class="toast"></div>
+  </main>
 
 <script>
-// ====== 데이터 정의 ======
-const QUESTIONS = [
-    // QUESTIONS[0] 교체
-  {
-    id: 1,
-    area: '어휘',
-    type: 'OX',
-    text: "‘사흘 뒤’는 오늘이 1일이라면 5일이다.", // 의도적으로 틀린 진술
-    options: ['O','X'],
-    answer: 1, // X
-    weights: { VOCAB: 1, FOCUS: 0.2 }
-  },
-  {
-    id: 2,
-    area: '어휘',
-    type: '4지선다',
-    text: "‘금일’의 의미로 알맞은 것은?",
-    options: ['오늘','내일','이번 주','요즘'],
-    answer: 0,
-    weights: { VOCAB: 1 }
-  },
-  {
-    id: 3,
-    area: '독해',
-    type: '4지선다',
-    text: "아래 글을 읽고 핵심을 고르세요.\n‘어떤 사람은 짧은 글은 잘 이해하지만 긴 글에서는 핵심을 놓친다. 이런 경우 꾸준히 요약 훈련을 하는 것이 도움이 된다.’",
-    options: ['긴 글은 읽지 말자','요약 훈련이 필요하다','모든 글을 똑같이 읽어야 한다','짧은 글은 쉬운 글이다'],
-    answer: 1,
-    weights: { COMPREH: 1, LOGIC: 0.3 }
-  },
-  {
-    id: 4,
-    area: '독해',
-    type: 'OX',
-    text: "‘배가 고파서 밥을 먹었다’에서 원인은 ‘배가 고파서’이고 결과는 ‘밥을 먹었다’이다.",
-    options: ['O','X'],
-    answer: 0,
-    weights: { COMPREH: 1 }
-  },
-  {
-    id: 5,
-    area: '문법',
-    type: '4지선다',
-    text: "다음 중 맞는 표기는?",
-    options: ['할 수 있다','할수있다','할수 있다','할 수있다'],
-    answer: 0,
-    weights: { GRAMMAR: 1, EXPRESSION: 0.3 }
-  },
-  {
-    id: 6,
-    area: '문법',
-    type: 'OX',
-    text: "‘먹을게’가 맞는 표현이다.",
-    options: ['O','X'],
-    answer: 0, // O
-    weights: { GRAMMAR: 1 }
-  },
-  {
-    id: 7,
-    area: '논리',
-    type: '4지선다',
-    text: "‘모든 새는 날 수 있다. 펭귄은 새다. 따라서 펭귄은 날 수 있다.’의 문제점은?",
-    options: ['사실과 의견이 섞였다','전제가 잘못됐다','논리적으로 완벽하다','결론이 적절하다'],
-    answer: 1,
-    weights: { LOGIC: 1 }
-  },
-  {
-    id: 8,
-    area: '종합',
-    type: '4지선다',
-    text: "다음 중 문해력의 정의로 가장 적절한 것은?",
-    options: ['글을 읽고 쓸 수 있는 능력','읽고 이해·비판·표현하는 종합 능력','글자를 많이 아는 능력','긴 글을 끝까지 읽는 끈기'],
-    answer: 1,
-    weights: { LOGIC: 0.7, COMPREH: 0.3 }
-  }
-];
+/* --------------------------
+   0) 유틸
+---------------------------*/
+const $ = sel => document.querySelector(sel);
+const params = new URLSearchParams(location.search);
+const DEBUG = params.get('debug') === '1';
+if (DEBUG) document.body.classList.add('debug');
+window.addEventListener('keydown', e=>{
+  if (e.key.toLowerCase() === 'd') document.body.classList.toggle('debug');
+});
 
-// 결과 유형 정의 (6유형) — desc를 [글 형식] 톤으로 개편
-const TYPES = {
-  VOCAB: { 
-    name: '어휘 마스터', 
-    color: '#ffcf33', 
-    desc: '낯선 단어를 보면 호기심이 먼저 올라오는 당신!<br>뜻과 뉘앙스를 쓱 캐치하고, 비슷한 표현도 깔끔히 구분해요.<br>친구들이 헷갈리는 말뜻 물어볼 때 해결사로 활약하죠!<br>가끔 디테일에 몰입해 큰 흐름을 놓칠 수 있지만, 한 번 정리하면 오래 가요.<br>단어장·하이라이트·짤막 메모가 딱 맞는 루틴이에요.<br>오늘의 신조어도 금방 내 것으로 만드는 어휘 고수!', 
-    img: 'assets/character1.jpg'
-  },
-  COMPREH: { 
-    name: '독해 탐색자', 
-    color: '#6dd3ff', 
-    desc: '글의 구조와 요지를 번쩍 포착하는 당신!<br>“그래서 핵심은?” 한 줄 요약에 강해요.<br>문단 간 연결과 원인–결과를 깔끔히 잡아내죠.<br>때로는 세부보다 큰 그림을 먼저 보는 편이라, 근거만 살짝 보강하면 금상첨화!<br>마인드맵·키워드 카드·문단표시가 찰떡 보조 장비예요.<br>긴 글도 방향 잃지 않는 든든한 항해사!', 
-    img: 'assets/character2.jpg'
-  },
-  GRAMMAR: { 
-    name: '문법 가디언', 
-    color: '#b8e986', 
-    desc: '맞춤법 레이더가 자동 작동되는 정확성 플레이어!<br>어색한 띄어쓰기나 문장 보면 바로 다듬고 싶어져요.<br>규범을 지켜 문서 퀄리티를 한 단계 끌어올리는 타입이죠.<br>가끔 창의적 표현 앞에서 멈칫할 수 있지만, 기준 위에 변주를 얹으면 최고!<br>교정·체크리스트·예문 수집이 성향과 찰떡궁합.<br>팀의 글을 든든히 지키는 문법 수호자!', 
-    img: 'assets/character3.jpg'
-  },
-  LOGIC: { 
-    name: '논리 크리티커', 
-    color: '#a78bfa', 
-    desc: '주장엔 근거, 예외엔 반례! 허점을 날카롭게 포착하는 비판적 독자예요.<br>주장–근거–결론 구조로 설득의 흐름을 견고하게 만듭니다.<br>데이터 검증을 즐기고, 감정적 수사는 최소화하는 쿨한 타입!<br>가끔 냉정해 보일 수 있으니 따뜻한 예시를 곁들이면 완벽해요.<br>토론·팩트체크·근거표 만들기에 진가를 발휘해요.<br>읽기를 생각으로, 생각을 논리로 바꾸는 설계자!', 
-    img: 'assets/character4.jpg'
-  },
-  EXPRESSION: { 
-    name: '표현 크리에이터', 
-    color: '#ff9ecd', 
-    desc: '아이디어를 매력적으로 포장하는 스토리텔러!<br>어휘 선택과 문장 리듬이 살아 있어 읽는 재미를 끌어올려요.<br>비유와 사례로 공감을 이끌고, 구성으로 흐름을 잡는 능력자죠.<br>때로는 디테일 근거가 아쉬울 수 있어요—팩트 체크만 더하면 금상첨화!<br>에세이·발표·카피라이팅 미션에서 빛나요.<br>당신의 문장은 골라 읽는 글을 ‘읽고 싶어지는 글’로 바꿉니다!', 
-    img: 'assets/character5.jpg'
-  },
-  FOCUS: { 
-    name: '집중 파이터', 
-    color: '#ffad5a', 
-    desc: '한 번 몰입하면 끝까지! 긴 글도 페이스를 유지하며 완독하는 끈기왕!<br>방해 요소를 차단하고 루틴을 만드는 데 탁월해요.<br>타이머·체크리스트·작은 목표로 꾸준히 전진하죠.<br>가끔 속도에 집중해 핵심 표시를 놓칠 수 있으니 요약·키워드 표시를 곁들이면 효율 UP!<br>챌린지·연속 코스 미션에서 진가 폭발!<br>오늘도 한 페이지, 내일은 한 챕터—꾸준함이 실력을 만듭니다.', 
-    img: 'assets/character6.jpg'
-  }
+/* --------------------------
+   1) 테스트 데이터 (이미지 + 핫스팟)
+   - 좌표계: 퍼센트 단위 {x, y, w, h} (stage 기준)
+   - 이미지 위 위치만 조정하면 전 기종 대응
+   - 필요 버튼만 만들었고, 나머지는 전부 이미지
+---------------------------*/
+
+/** 좌표 헬퍼: 보기 좋게 (%) */
+const box = (x,y,w,h)=>({x,y,w,h});
+/** 공용 핸들러 이름들: 'next', 'answer:o', 'answer:x', 'share', 'restart', 'instagram', 'glang' 등 */
+
+/* 질문 정답(예시): 실 점수 로직은 자유 편집. */
+const correct = {
+  q1: 'x',
+  q2: '오늘',      // 보기 텍스트형일 때 예시
+  q3: '요약 훈련이 필요하다',
+  q4: 'o',
+  q5: '할 수 있다',
+  q6: 'x',
+  q7: '전제가 잘못됐다',
+  q8: '읽고 이해·비판·표현하는 종합 능력'
 };
 
+/* 화면 시퀀스 */
+const screens = [
+  /* 0) 인트로 */
+  {
+    id: 'intro',
+    img: 'assets/intro.jpg',
+    hotspots: [
+      { id:'start', label:'START', rect: box(22,73,56,7), on:'next' },     // Start 버튼
+    ]
+  },
 
-// ====== 상태 ======
-let state = { step: 'intro', index: 0, answers: Array(QUESTIONS.length).fill(null) };
+  /* 1) Q1 (OX 예시) */
+  {
+    id: 'q1',
+    img: 'assets/q1.jpg', // = iPhone 16 Pro Max - 3.jpg
+    hotspots: [
+      { id:'q1_o', label:'O', rect: box(5,47,90,8), on:'answer:o' },
+      { id:'q1_x', label:'X', rect: box(5,57,90,8), on:'answer:x' },
+    ]
+  },
 
-const $app = document.getElementById('app');
+  /* 2) Q2 (객관식 4지) */
+  {
+    id: 'q2',
+    img: 'assets/q2.jpg',
+    hotspots: [
+      { id:'q2_a', label:'오늘',   rect: box(5,37,90,8), on:'answer:오늘' },
+      { id:'q2_b', label:'내일',   rect: box(5,47,90,8), on:'answer:내일' },
+      { id:'q2_c', label:'이번 주', rect: box(5,58,90,8), on:'answer:이번 주' },
+      { id:'q2_d', label:'요즘',   rect: box(5,68,90,8), on:'answer:요즘' },
+    ]
+  },
 
-function render(){
-  if(state.step==='intro') return renderIntro();
-  if(state.step==='quiz') return renderQuiz();
-  if(state.step==='result') return renderResult();
-}
+  /* 3) Q3 */
+  {
+    id: 'q3',
+    img: 'assets/q3.jpg',
+    hotspots: [
+      { id:'q3_a', label:'긴 글은 읽지 말자', rect: box(5,41,90,8), on:'answer:긴 글은 읽지 말자' },
+      { id:'q3_b', label:'요약 훈련이 필요하다', rect: box(5,51,90,8), on:'answer:요약 훈련이 필요하다' },
+      { id:'q3_c', label:'모든 글을 똑같이 읽어야 한다', rect: box(5,62,90,8), on:'answer:모든 글을 똑같이 읽어야 한다' },
+      { id:'q3_d', label:'짧은 글은 쉬운 글이다', rect: box(5,72,90,8), on:'answer:짧은 글은 쉬운 글이다' },
+    ]
+  },
 
-function renderIntro(){
-  $app.innerHTML = `
-    <section class="intro">
-      <h2>나의 문해력 유형은?</h2>
-      <div class="rotator"><img id="rotImg" alt="캐릭터 미리보기" /></div>
-      <p class="meta">OX와 4지선다로 어휘·독해·문법·논리를 가볍게 점검합니다.</p>
-      <div class="space"></div>
-      <button class="btn" onclick="startQuiz()">시작하기</button>
-      <div class="space"></div>
-      <p class="note">결과는 6가지 캐릭터(어휘/독해/문법/논리/표현/집중) 중 하나로 제공됩니다.</p>
-    </section>
-  `;
-  startRotator(); // ★ 추가: 로테이터 시작
-}
-// ====== Intro 캐릭터 로테이터 ======
-let introTimer = null;
-const INTRO_IMAGES = [
-  'assets/character1.jpeg',
-  'assets/character2.jpeg',
-  'assets/character3.jpeg',
-  'assets/character4.jpeg',
-  'assets/character5.jpeg',
-  'assets/character6.jpeg'
+  /* 4) Q4 (OX) */
+  {
+    id: 'q4',
+    img: 'assets/q4.jpg',
+    hotspots: [
+      { id:'q4_o', label:'O', rect: box(5,48,90,8), on:'answer:o' },
+      { id:'q4_x', label:'X', rect: box(5,59,90,8), on:'answer:x' },
+    ]
+  },
+
+  /* 5) Q5 (맞춤법 4지) */
+  {
+    id: 'q5',
+    img: 'assets/q5.jpg',
+    hotspots: [
+      { id:'q5_a', label:'할 수 있다', rect: box(5,38,90,8), on:'answer:할 수 있다' },
+      { id:'q5_b', label:'할수있다',   rect: box(5,48,90,8), on:'answer:할수있다' },
+      { id:'q5_c', label:'할수 있다',  rect: box(5,59,90,8), on:'answer:할수 있다' },
+      { id:'q5_d', label:'할 수있다', rect: box(5,69,90,8), on:'answer:할 수있다' },
+    ]
+  },
+
+  /* 6) Q6 (OX) */
+  {
+    id: 'q6',
+    img: 'assets/q6.jpg',
+    hotspots: [
+      { id:'q6_o', label:'O', rect: box(5,48,90,8), on:'answer:o' },
+      { id:'q6_x', label:'X', rect: box(5,59,90,8), on:'answer:x' },
+    ]
+  },
+
+  /* 7) Q7 (논리) */
+  {
+    id: 'q7',
+    img: 'assets/q7.jpg',
+    hotspots: [
+      { id:'q7_a', label:'사실과 의견이 섞였다', rect: box(5,38,90,8), on:'answer:사실과 의견이 섞였다' },
+      { id:'q7_b', label:'전제가 잘못됐다',     rect: box(5,48,90,8), on:'answer:전제가 잘못됐다' },
+      { id:'q7_c', label:'논리적으로 완벽하다', rect: box(5,59,90,8), on:'answer:논리적으로 완벽하다' },
+      { id:'q7_d', label:'결론이 적절하다',     rect: box(5,69,90,8), on:'answer:결론이 적절하다' },
+    ]
+  },
+
+  /* 8) Q8 (정의) */
+  {
+    id: 'q8',
+    img: 'assets/q8.jpg',
+    hotspots: [
+      { id:'q8_a', label:'글을 읽고 쓸 수 있는 능력',         rect: box(5,38,90,8), on:'answer:글을 읽고 쓸 수 있는 능력' },
+      { id:'q8_b', label:'읽고 이해·비판·표현하는 종합 능력', rect: box(5,48,90,8), on:'answer:읽고 이해·비판·표현하는 종합 능력' },
+      { id:'q8_c', label:'글자를 많이 아는 능력',             rect: box(5,59,90,8), on:'answer:글자를 많이 아는 능력' },
+      { id:'q8_d', label:'긴 글을 끝까지 읽는 끈기',           rect: box(5,69,90,8), on:'answer:긴 글을 끝까지 읽는 끈기' },
+    ]
+  },
+
+  /* 9) 결과 (예시: Expression Creator 이미지) */
+  {
+    id: 'result',
+    // 아래는 기본 결과 이미지. 실제 결과에 따라 JS가 바꿔치기 함.
+    img: 'assets/result_expression.jpg',
+    hotspots: [
+      { id:'share',     label:'SHARE',     rect: box(17,80,30,6), on:'share' },
+      { id:'restart',   label:'RESTART',   rect: box(53,80,30,6), on:'restart' },
+      { id:'instagram', label:'Instagram', rect: box(40,89,8,5),  on:'instagram' },
+      { id:'glang',     label:'Glang Logo',rect: box(50,89,8,5),  on:'glang' },
+    ]
+  }
 ];
 
-// 이미지 프리로드 + jpg 폴백 지원
-function preloadIntroImages() {
-  INTRO_IMAGES.forEach((src, i) => {
-    const img = new Image();
-    img.onerror = () => {
-      // jpeg가 없으면 jpg 시도
-      const jpg = src.replace('.jpeg', '.jpg');
-      INTRO_IMAGES[i] = jpg;
-      const fix = new Image();
-      fix.src = jpg;
-    };
-    img.src = src;
+/* --------------------------
+   2) 상태 & 진행
+---------------------------*/
+const state = {
+  index: 0,
+  answers: {} // { q1:'x', q2:'오늘', ... }
+};
+
+const $bg = $('#bg');
+const $stage = $('#app');
+const $toast = $('#toast');
+
+function showToast(msg, t=1100){
+  $toast.textContent = msg;
+  $toast.classList.add('show');
+  setTimeout(()=> $toast.classList.remove('show'), t);
+}
+
+function render(){
+  const scr = screens[state.index];
+  if (!scr) return;
+
+  // 배경 세팅
+  $bg.style.backgroundImage = `url("${scr.img}")`;
+
+  // 기존 핫스팟 제거
+  $stage.querySelectorAll('.hotspot').forEach(el=>el.remove());
+
+  // 핫스팟 주입
+  scr.hotspots.forEach(h=>{
+    const btn = document.createElement('button');
+    btn.className = 'hotspot';
+    btn.setAttribute('aria-label', h.label || h.id);
+
+    // 퍼센트 좌표 -> style
+    const {x,y,w,h:hh} = h.rect;
+    Object.assign(btn.style, {
+      left:  x + '%',
+      top:   y + '%',
+      width: w + '%',
+      height: hh + '%',
+      borderRadius: '12px'
+    });
+
+    // 이벤트
+    btn.addEventListener('click', ()=>handle(h.on));
+    $stage.appendChild(btn);
   });
 }
 
-function startRotator(){
-  preloadIntroImages();
-  const el = document.getElementById('rotImg');
-  if(!el) return;
-
-  let idx = 0;
-  const setImage = () => {
-    el.src = INTRO_IMAGES[idx];
-    el.onerror = function(){
-      // 남아있는 확장자 이슈 대비: jpeg↔jpg 양방향 폴백
-      const nextTry = el.src.endsWith('.jpeg') ? el.src.replace('.jpeg','.jpg') : el.src.replace('.jpg','.jpeg');
-      if(nextTry !== el.src){ el.src = nextTry; }
-    };
-    idx = (idx + 1) % INTRO_IMAGES.length;
-  };
-  setImage();
-  clearInterval(introTimer);
-  introTimer = setInterval(setImage, 900); // 전환 간격(ms) 조절 가능
-}
-
-// 퀴즈로 넘어갈 때 타이머 정리
-function startQuiz(){
-  if(introTimer){ clearInterval(introTimer); introTimer = null; }
-  state.step='quiz';
-  state.index=0; state.answers=Array(QUESTIONS.length).fill(null);
-  render();
-}
-
-
-function startQuiz(){
-  state.step='quiz';
-  state.index=0; state.answers=Array(QUESTIONS.length).fill(null);
-  render();
-}
-
-function renderQuiz(){
-  const q = QUESTIONS[state.index];
-  const total = QUESTIONS.length;
-  const progress = ((state.index)/total)*100;
-  const selected = state.answers[state.index];
-  $app.innerHTML = `
-    <div class="meta">문항 ${state.index+1} / ${total} · ${q.area} · ${q.type}</div>
-    <div class="progress" aria-label="진행률"><div class="bar" style="width:${progress}%"></div></div>
-    <div class="space"></div>
-    <div class="q-title">${escapeHTML(q.text).replace(/\n/g,'<br>')}</div>
-    <div class="choices" role="group" aria-label="선택지">
-      ${q.options.map((opt,i)=>`
-        <label class="choice">
-          <input type="radio" name="q${q.id}" ${selected===i?'checked':''} onchange="choose(${i})" />
-          <div><div>${escapeHTML(opt)}</div></div>
-        </label>
-      `).join('')}
-    </div>
-    <div class="space"></div>
-    <div class="row">
-      <button class="btn secondary" ${state.index===0?'disabled':''} onclick="prev()">이전</button>
-      <button class="btn" ${selected==null?'disabled':''} onclick="next()">${state.index===total-1?'결과보기':'다음'}</button>
-    </div>
-  `;
-}
-
-function choose(i){
-  state.answers[state.index]=i; render();
-}
-function prev(){ state.index=Math.max(0,state.index-1); render(); }
 function next(){
-  if(state.index===QUESTIONS.length-1){
-    state.step='result';
-    render();
-  } else { state.index++; render(); }
+  state.index++;
+  // 질문을 모두 끝냈다면 결과로
+  if (state.index >= screens.length - 1) {
+    state.index = screens.length - 1;
+    // 결과 이미지 선택
+    const resultKey = chooseResult(state.answers);
+    const resultImg = resultImageByKey(resultKey);
+    screens[state.index].img = resultImg;
+  }
+  render();
 }
 
-function scoreDetail(){
-  // 영역별 가중치 합산 (정답만 반영)
-  const buckets = { VOCAB:0, COMPREH:0, GRAMMAR:0, LOGIC:0, EXPRESSION:0, FOCUS:0 };
-  const correctFlags = [];
-  QUESTIONS.forEach((q,idx)=>{
-    const ok = state.answers[idx]===q.answer;
-    correctFlags[idx]=ok;
-    if(ok){
-      for(const k in q.weights){ buckets[k]+=q.weights[k]; }
+function handle(action){
+  // on:"answer:값" | "next" | "share" | "restart" | "instagram" | "glang"
+  if (!action) return;
+  if (action === 'next') { next(); return; }
+
+  if (action.startsWith('answer:')){
+    const val = action.split(':')[1];
+    const qid = screens[state.index].id; // "q1"~"q8"
+    state.answers[qid] = val;
+    // // 간단 피드백(원하면 제거)
+    // if (correct[qid] !== undefined) {
+    //   const ok = correct[qid] === val;
+    //   showToast(ok ? '👍 정답' : '오답');
+    // }
+    next();
+    return;
+  }
+
+  if (action === 'share') {
+    const shareData = {
+      title: '글랑 문해력 미니 테스트',
+      text: '나의 문해력 캐릭터를 확인했어요! 글랑과 함께 성장해요 💫',
+      url: location.origin + location.pathname
+    };
+    if (navigator.share) navigator.share(shareData).catch(()=>{});
+    else {
+      navigator.clipboard?.writeText(shareData.url);
+      showToast('링크가 복사되었어요');
     }
+    return;
+  }
+
+  if (action === 'restart') {
+    state.index = 0;
+    state.answers = {};
+    render();
+    return;
+  }
+
+  if (action === 'instagram') {
+    window.open('https://www.instagram.com/', '_blank', 'noopener');
+    return;
+  }
+
+  if (action === 'glang') {
+    window.open('https://glang.app', '_blank', 'noopener');
+    return;
+  }
+}
+
+/* --------------------------
+   3) 결과 산출 (심플 룰, 자유 교체)
+   - 예시: 정답 수 기반으로 6개 결과에 매핑
+   - 실제 서비스 룰로 교체만 하면 됨.
+---------------------------*/
+function chooseResult(answers){
+  // 정답 개수
+  let score = 0;
+  Object.keys(correct).forEach(k=>{
+    if (answers[k] === correct[k]) score++;
   });
-  const totalScore = correctFlags.filter(Boolean).length;
-  return { buckets, totalScore, correctFlags };
+
+  // 6개 유형 예시 매핑
+  // (원하는 룰로 재매핑하세요)
+  if (score >= 7) return 'expression';
+  if (score === 6) return 'logic';
+  if (score === 5) return 'focus';
+  if (score === 4) return 'vocab';
+  if (score === 3) return 'grammar';
+  return 'comp';
 }
 
-function pickType(detail){
-  // 최댓값 유형 선택, 동점 시 우선순위: COMPREH > VOCAB > GRAMMAR > LOGIC > EXPRESSION > FOCUS
-  const order = ['COMPREH','VOCAB','GRAMMAR','LOGIC','EXPRESSION','FOCUS'];
-  let winner = 'FOCUS', best = -1;
-  for(const k of order){
-    const v = detail.buckets[k];
-    if(v>best){ best=v; winner=k; }
-  }
-  // 매우 높은 총점이면 논리 부바 보정
-  if(detail.totalScore>=7){ winner='LOGIC'; }
-  return winner;
+function resultImageByKey(key){
+  const map = {
+    expression: 'assets/expression.jpg',
+    logic:      'assets/logic.jpg',
+    focus:      'assets/focus.jpg',
+    vocab:      'assets/vocab.jpg',
+    grammar:    'assets/grammar.jpg',
+    comp:       'assets/compreh.jpg'
+  };
+  return map[key] || map.expression;
 }
 
-function renderResult(){
-  const detail = scoreDetail();
-  const winnerKey = pickType(detail);
-  const t = TYPES[winnerKey];
-
-  // 영역별 진행바 데이터
-  const pretty = [
-    ['어휘', detail.buckets.VOCAB],
-    ['독해', detail.buckets.COMPREH],
-    ['문법', detail.buckets.GRAMMAR],
-    ['논리', detail.buckets.LOGIC],
-    ['표현', detail.buckets.EXPRESSION],
-    ['집중', detail.buckets.FOCUS],
-  ];
-  const maxBar = Math.max(...pretty.map(p=>p[1]), 1);
-
-  $app.innerHTML = `
-    <section class="result">
-      <div class="hero">
-        <div class="char" style="border-color:${t.color}">
-          <img src="${t.img}" alt="${t.name}" onerror="this.replaceWith(document.createTextNode('🧩'));">
-        </div>
-        <div>
-          <div class="pill" style="background:${t.color}22;color:${t.color}">당신의 캐릭터</div>
-          <h2 style="margin:.2rem 0 0">${t.name}</h2>
-          <p class="meta" style="margin:.35rem 0 0">총점 ${detail.totalScore} / ${QUESTIONS.length}</p>
-        </div>
-      </div>
-
-      <p style="margin:8px 0 0">${t.desc}</p>
-
-      <div class="space"></div>
-      <h3 style="margin:0">영역별 프로파일</h3>
-      <div class="kpi">
-        ${pretty.map(([label,val])=>{
-          const pct = Math.round((val/maxBar)*100);
-          return `<div class=\"kpi-row\"><div class=\"meta\">${label}</div><div class=\"progress\"><div class=\"bar\" style=\"width:${pct}%;background:${t.color}\"></div></div></div>`
-        }).join('')}
-      </div>
-
-      <div class="space"></div>
-      <div class="row">
-        <button class="btn" onclick="shareResult('${t.name}', ${detail.totalScore})">결과 공유하기</button>
-        <button class="btn ghost" onclick="startQuiz()">다시 풀기</button>
-      </div>
-
-      <div class="space"></div>
-      <a class="btn secondary" href="#" onclick="goToStore();return false;">
-        👉 글랑 앱에서 심화 테스트
-      </a>
-
-
-      <div class="space"></div>
-      <details>
-        <summary>정답 해설 보기</summary>
-        <ol>
-          ${QUESTIONS.map((q,i)=>`<li><strong>Q${i+1}</strong> 정답: ${q.options[q.answer]}</li>`).join('')}
-        </ol>
-      </details>
-    </section>
-  `;
-}
-
-function shareResult(name, score){
-  const text = `나는 ${name}! (총점 ${score}/${QUESTIONS.length}) — 글랑 문해력 미니 테스트`;
-  const url = location.href;
-  if(navigator.share){ navigator.share({title: '글랑 문해력 테스트', text, url}).catch(()=>{}); }
-  else { navigator.clipboard.writeText(`${text} ${url}`).then(()=>alert('결과 링크를 클립보드에 복사했어요!')); }
-}
-function goToStore(){
-  const ua = navigator.userAgent || navigator.vendor || window.opera;
-  
-  if (/android/i.test(ua)) {
-    // 안드로이드 → 플레이스토어
-    window.location.href = "https://play.google.com/store/apps/details?id=com.zero.glang&pcampaignid=web_share";
-  } else if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
-    // iOS → 앱스토어
-    window.location.href = "https://apps.apple.com/kr/app/%EA%B8%80%EB%9E%91-glang/id6740841063";
-  } else {
-    // PC 및 기타 환경 → Google Play 웹 링크
-    window.location.href = "https://play.google.com/store/apps/details?id=com.zero.glang&pcampaignid=web_share";
-  }
-}
-
-function escapeHTML(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c])); }
-
+/* --------------------------
+   4) 시작
+---------------------------*/
 render();
 </script>
 </body>
