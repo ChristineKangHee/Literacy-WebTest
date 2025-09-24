@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>글랑 문해력 미니 테스트</title>
+
 <!-- ✅ 카톡/메신저 미리보기용 OG/Twitter 메타 -->
 <meta name="description" content="8문항 1분컷! 어휘·독해·문법·논리로 나의 문해력 캐릭터를 뽑아보세요." />
 <meta property="og:type" content="website" />
@@ -27,23 +28,41 @@
 <style>
   :root{ --tap:44px; }
   html,body{height:100%;margin:0;background:#E5E8F1;}
-  body{display:flex;align-items:center;justify-content:center;}
+  body{
+    display:flex;align-items:center;justify-content:center;
+    min-height:100svh;
+  }
 
   /* 화면 컨테이너 */
   .stage{
     position:relative;
     width:min(100vw, 768px);
-    height:100svh;
+    height:100svh;              /* 기본은 1뷰포트 높이 */
     max-height:1600px;
-    overflow:hidden;
+    overflow:hidden;            /* 기본: 고정 화면 */
     background:#E5E8F1;
   }
   .bg{
     position:absolute; inset:0;
+    /* 기본: contain 중앙 정렬 */
     background:#E5E8F1 center/contain no-repeat;
   }
 
-  /* 핫스팟: 투명 버튼(클릭 가능, % 유지) */
+  /* 🔽 스크롤 모드 (폰 세로 결과가 세로로 길 때 자동 적용) */
+  .stage.scroll{
+    overflow:visible;           /* 페이지(body) 스크롤 사용 */
+  }
+  .bg.scroll{
+    background-position:center top; /* 위 정렬로 시작해서 아래로 스크롤 */
+  }
+  body.scroll-align-top{
+    align-items:flex-start;     /* 긴 화면일 때 상단 정렬로 UX 자연스럽게 */
+  }
+  @media (orientation: portrait) and (hover: none) and (pointer: coarse){
+    .stage.scroll{ -webkit-overflow-scrolling: touch; }
+  }
+
+  /* 핫스팟: 투명 버튼(클릭 가능) — 위치/크기는 JS가 px로 지정 */
   .hotspot{
     position:absolute; display:block; border:none; background:transparent;
     padding:0; margin:0; cursor:pointer;
@@ -55,13 +74,13 @@
     outline-offset:2px; border-radius:12px;
   }
 
-  /* 비클릭 고정 영역(텍스트 표기용) */
+  /* 비클릭 고정 영역(텍스트 표기용) — 위치/크기는 JS가 px로 지정 */
   .spot{
     position:absolute; display:flex; align-items:center; justify-content:center;
     background:transparent; pointer-events:none; text-align:center;
   }
 
-  /* 디버그 모드 */
+  /* 디버그 모드 (D 키 또는 ?debug=1) */
   .debug .hotspot,
   .debug .spot{ outline:1px dashed rgba(0,0,0,.25); background:rgba(0,128,255,.06); }
   .debug .hotspot::after{
@@ -90,8 +109,16 @@
   .score{
     font:700 13px/1 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;
     color:#ffffff; letter-spacing:.2px;
-    text-shadow:0 1px 2px rgba(0,0,0,.2);
     white-space:nowrap;
+  }
+
+  /* ✅ 폰(터치+세로) & 폭이 태블릿 미만일 때만: 가로 꽉 채우기 + 중앙 기준 */
+  @media (orientation: portrait) and (hover: none) and (pointer: coarse) and (max-width: 767px) {
+    .stage{ width: 100vw; }
+    .bg{
+      background-size: 100% auto;        /* 가로 꽉, 세로 비율 유지 */
+      background-position: center center; /* 기본은 중앙 정렬 */
+    }
   }
 </style>
 </head>
@@ -130,7 +157,7 @@ function openStore(){ window.open(isIOS()?STORE.ios:STORE.android,'_blank','noop
 /* --------------------------
    1) 데이터 (이미지 + 핫스팟)
 ---------------------------*/
-const box = (x,y,w,h)=>({x,y,w,h});
+const box = (x,y,w,h)=>({x,y,w,h}); // 퍼센트 기준
 
 /* 정답 키 (샘플) */
 const correct = {
@@ -166,6 +193,7 @@ function resultLabelByKey(key){
   })[key] || '문해력 캐릭터';
 }
 
+/* 스크린 정의 */
 const screens = [
   { id:'intro', img:'assets/intro.jpg',
     hotspots:[ {id:'start',label:'START',rect:box(22,73,56,7),on:'next'} ] },
@@ -289,46 +317,90 @@ function getImageMeta(src){
   });
 }
 
-/* contain 배경 위에 픽셀 고정 배치 */
-async function placeOnContainedBg({stageEl,bgEl,imgUrl,rectPct,targetEl}){
+/* ✅ contain/fit-width + 중앙/상단 정렬 모두 정확히 맞추는 배치 함수 */
+async function placeOnBg({ stageEl, imgUrl, rectPct, targetEl, fitWidth=false, topAligned=false }){
   const meta = await getImageMeta(imgUrl);
   const sw = stageEl.clientWidth, sh = stageEl.clientHeight;
-  const scale = Math.min(sw/meta.w, sh/meta.h);
+
+  const scale = fitWidth ? (sw / meta.w) : Math.min(sw/meta.w, sh/meta.h);
   const drawW = meta.w * scale, drawH = meta.h * scale;
-  const offX = (sw - drawW)/2, offY = (sh - drawH)/2;
+
+  const offX = fitWidth ? 0 : Math.round((sw - drawW)/2);
+  const offY = topAligned ? 0 : Math.round((sh - drawH)/2);
 
   const rx = rectPct.x * meta.w / 100;
   const ry = rectPct.y * meta.h / 100;
   const rw = rectPct.w * meta.w / 100;
   const rh = rectPct.h * meta.h / 100;
 
-  const left = Math.round(offX + rx * scale);
-  const top  = Math.round(offY + ry * scale);
-  const width= Math.round(rw * scale);
-  const height=Math.round(rh * scale);
+  const left   = Math.round(offX + rx * scale);
+  const top    = Math.round(offY + ry * scale);
+  const width  = Math.round(rw * scale);
+  const height = Math.round(rh * scale);
 
   Object.assign(targetEl.style, {
     left:left+'px', top:top+'px', width:width+'px', height:height+'px'
   });
 }
 
-/* --------------------------
-   2-2) 공유 문구 생성
----------------------------*/
+/* CSS와 동일한 미디어쿼리로 fit-width 모드 감지 */
+const FIT_QUERY = '(orientation: portrait) and (hover: none) and (pointer: coarse) and (max-width: 767px)';
+function isFitWidthMode(){ return window.matchMedia(FIT_QUERY).matches; }
+
+/* 결과 공유 문구 */
 function buildShareData(){
   const key = state.score?.key;
   const label = resultLabelByKey(key);
   const url = 'https://zeroglang.com/';
-
-  const lines = [
+  const text = [
     `나는 ${label}!`,
     '딱 1분만 투자하면 내 문해력 캐릭터가 뽑힌다!',
     '결과는 친구랑 공유하고 누가 더 똑똑한지 대결 고고씽~',
-    '',
     `👉 테스트하러 가기: ${url}`
-  ];
-  const text = lines.join('\n');
-  return {text};
+  ].join('\n');
+  return { text };
+}
+
+/* --------------------------
+   스크롤 모드: 결과 이미지가 뷰포트보다 길 때만 활성화(폰 세로)
+---------------------------*/
+async function needScrollForResult(stageEl, imgUrl){
+  if (!isFitWidthMode()) return false;
+  const meta = await getImageMeta(imgUrl);
+  const sw = stageEl.clientWidth, sh = window.innerHeight; // 뷰포트 높이
+  const scale = sw / meta.w;              // fit-width
+  const drawH = meta.h * scale;           // 실제 렌더 높이
+  return drawH > sh + 1;                  // 1px 여유
+}
+
+async function applyScrollModeIfNeeded(){
+  const scr = screens[state.index];
+  const isResult = scr?.id === 'result';
+  const fit = isFitWidthMode();
+
+  // 기본(해제)
+  $stage.classList.remove('scroll');
+  $bg.classList.remove('scroll');
+  document.body.classList.remove('scroll-align-top');
+  $stage.style.height = '100svh';
+
+  if (!(isResult && fit)) return { topAligned:false };
+
+  const mustScroll = await needScrollForResult($stage, scr.img);
+  if (!mustScroll) return { topAligned:false };
+
+  // ✅ 스크롤 모드 켜기: stage를 실제 렌더 높이에 맞춰 늘림
+  const meta = await getImageMeta(scr.img);
+  const sw = $stage.clientWidth;
+  const scale = sw / meta.w;
+  const drawH = Math.round(meta.h * scale);
+
+  $stage.style.height = drawH + 'px';   // 스테이지를 콘텐츠 높이로 확장
+  $stage.classList.add('scroll');
+  $bg.classList.add('scroll');          // background-position: top
+  document.body.classList.add('scroll-align-top');
+
+  return { topAligned:true };           // 배치 계산에 top 기준을 사용
 }
 
 /* --------------------------
@@ -336,29 +408,37 @@ function buildShareData(){
 ---------------------------*/
 let _currentResultImg = null;
 let _scoreSpotEl = null;
+let _hotspotEls = []; // {el, rect}
 
-function render(){
+async function render(){
   const scr = screens[state.index];
   if (!scr) return;
 
   _currentResultImg = scr.img;
   $bg.style.backgroundImage = `url("${scr.img}")`;
 
+  // 초기화
   $stage.querySelectorAll('.hotspot, .spot').forEach(el=>el.remove());
   _scoreSpotEl = null;
+  _hotspotEls = [];
 
-  // 핫스팟
-  scr.hotspots.forEach(h=>{
+  // 스크롤 모드 적용 여부 계산
+  const fit = isFitWidthMode();
+  const { topAligned } = await applyScrollModeIfNeeded();
+
+  // 🔹 핫스팟 생성 + 배치(px)
+  for (const h of scr.hotspots){
     const btn=document.createElement('button');
     btn.className='hotspot';
     btn.setAttribute('aria-label', h.label || h.id);
-    const {x,y,w,h:hh}=h.rect;
-    Object.assign(btn.style,{ left:x+'%', top:y+'%', width:w+'%', height:hh+'%', borderRadius:'12px' });
+    btn.style.borderRadius='12px';
     btn.addEventListener('click', ()=>{ if(!LOCK) handle(h.on); });
     $stage.appendChild(btn);
-  });
+    _hotspotEls.push({ el: btn, rect: h.rect });
+    placeOnBg({ stageEl:$stage, imgUrl:_currentResultImg, rectPct:h.rect, targetEl:btn, fitWidth:fit, topAligned });
+  }
 
-  // 결과 점수 표시(절대 고정)
+  // 🔹 결과 점수 표시(절대 고정)
   if (scr.id === 'result' && state.score?.total != null){
     const posPct = RESULT_SCORE_POS_PCT[state.score.key] || RESULT_SCORE_POS_PCT.comp;
     const spot = document.createElement('div');
@@ -367,16 +447,24 @@ function render(){
     spot.style.borderRadius = '12px';
     $stage.appendChild(spot);
     _scoreSpotEl = spot;
-
-    placeOnContainedBg({ stageEl:$stage, bgEl:$bg, imgUrl:_currentResultImg, rectPct:posPct, targetEl:spot });
+    placeOnBg({ stageEl:$stage, imgUrl:_currentResultImg, rectPct:posPct, targetEl:spot, fitWidth:fit, topAligned });
   }
 }
 
-/* 리사이즈 시 재배치 */
-window.addEventListener('resize', ()=>{
-  if (!_scoreSpotEl || state.index !== screens.length-1 || !state.score) return;
-  const posPct = RESULT_SCORE_POS_PCT[state.score.key] || RESULT_SCORE_POS_PCT.comp;
-  placeOnContainedBg({ stageEl:$stage, bgEl:$bg, imgUrl:_currentResultImg, rectPct:posPct, targetEl:_scoreSpotEl });
+/* 리사이즈/회전 시 전체 재배치 */
+window.addEventListener('resize', async ()=>{
+  if (!_currentResultImg) return;
+  const fit = isFitWidthMode();
+  const { topAligned } = await applyScrollModeIfNeeded();
+
+  _hotspotEls.forEach(({el, rect})=>{
+    placeOnBg({ stageEl:$stage, imgUrl:_currentResultImg, rectPct:rect, targetEl:el, fitWidth:fit, topAligned });
+  });
+
+  if (_scoreSpotEl && screens[state.index]?.id === 'result' && state.score){
+    const posPct = RESULT_SCORE_POS_PCT[state.score.key] || RESULT_SCORE_POS_PCT.comp;
+    placeOnBg({ stageEl:$stage, imgUrl:_currentResultImg, rectPct:posPct, targetEl:_scoreSpotEl, fitWidth:fit, topAligned });
+  }
 });
 
 function next(){
@@ -415,16 +503,18 @@ function handle(action){
     } else next();
     return;
   }
+
   if (action === 'share'){
-  const data = buildShareData();
-  if (navigator.share){
-    navigator.share(data).catch(()=>{});
-  } else {
-    navigator.clipboard?.writeText(`${data.title}\n\n${data.text}`);
-    showToast('공유 문구가 복사되었어요', 'ok', 1200);
+    const data = buildShareData();
+    if (navigator.share){
+      navigator.share(data).catch(()=>{});
+    } else {
+      navigator.clipboard?.writeText(data.text);
+      showToast('공유 문구가 복사되었어요', 'ok', 1200);
+    }
+    return;
   }
-  return;
-}
+
   if (action === 'restart'){
     state.index = 0;
     state.answers = {};
@@ -456,7 +546,6 @@ function chooseResult(answers){
   let winners = Object.entries(count).filter(([,v])=>v===maxCnt).map(([k])=>k);
 
   if (winners.includes('logic') && isRight('q7')) return 'focus';
-
   if (winners.length>1 && isRight('q8') && winners.includes('comp')) winners=['comp'];
 
   const priority=['vocab','comp','grammar','logic'];
