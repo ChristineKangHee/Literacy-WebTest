@@ -121,6 +121,16 @@
     }
   }
 </style>
+
+<!-- Google tag (gtag.js) — GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TT0E9NJKH8"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  // 기본 page_view
+  gtag('config', 'G-TT0E9NJKH8');
+</script>
 </head>
 <body>
   <main id="app" class="stage" aria-live="polite">
@@ -278,6 +288,17 @@ const $bg = $('#bg');
 const $stage = $('#app');
 const $toast = $('#toast');
 let LOCK = false;
+
+// GA4 화면 추적 중복 방지
+let _lastTrackedIndex = -1;
+function trackScreen() {
+  if (typeof gtag !== 'function') return;
+  if (_lastTrackedIndex === state.index) return;
+  const scr = screens[state.index];
+  if (!scr) return;
+  gtag('event', 'screen_view', { screen_name: scr.id });
+  _lastTrackedIndex = state.index;
+}
 
 /* 토스트 */
 function showToast(msg, type='ok', duration=900, onHide){
@@ -449,6 +470,9 @@ async function render(){
     _scoreSpotEl = spot;
     placeOnBg({ stageEl:$stage, imgUrl:_currentResultImg, rectPct:posPct, targetEl:spot, fitWidth:fit, topAligned });
   }
+
+  // GA4 화면 추적 (resize 재렌더링 시 중복 방지)
+  trackScreen();
 }
 
 /* 리사이즈/회전 시 전체 재배치 */
@@ -480,6 +504,16 @@ function next(){
     const resultImg = resultImageByKey(resultKey);
     screens[state.index].img = resultImg;
     state.score.key = resultKey;
+
+    // ✅ GA4: 퀴즈 완료 이벤트
+    if (typeof gtag === 'function') {
+      gtag('event', 'quiz_complete', {
+        total_correct: state.score.total,
+        total_questions: state.score.outOf,
+        result_key: state.score.key,
+        result_label: resultLabelByKey(state.score.key)
+      });
+    }
   }
   render();
 }
@@ -487,24 +521,48 @@ function next(){
 function handle(action){
   if (!action) return;
 
-  if (action === 'next'){ next(); return; }
+  // ✅ GA4: UI 액션 공통 로깅
+  if (typeof gtag === 'function') {
+    gtag('event', 'ui_action', { action, page_location: location.href });
+  }
+
+  if (action === 'next'){ 
+    // 시작 버튼 트래킹
+    if (typeof gtag === 'function') gtag('event', 'start_quiz');
+    next(); 
+    return; 
+  }
 
   if (action.startsWith('answer:')){
     const val = action.split(':')[1];
     const qid = screens[state.index].id;
     state.answers[qid] = val;
 
+    // 정답/오답 이벤트
     if (Object.prototype.hasOwnProperty.call(correct, qid)){
       const ok = correct[qid] === val;
+
+      // ✅ GA4: 문항 응답 로깅
+      if (typeof gtag === 'function') {
+        gtag('event', 'answer', {
+          qid,
+          value: val,
+          result: ok ? 'correct' : 'wrong'
+        });
+      }
+
       LOCK = true;
       showToast(ok ? '👍 정답' : '❌ 오답', ok ? 'ok' : 'bad', 900, ()=>{
         LOCK = false; next();
       });
-    } else next();
+    } else {
+      next();
+    }
     return;
   }
 
   if (action === 'share'){
+    if (typeof gtag === 'function') gtag('event', 'share_click');
     const data = buildShareData();
     if (navigator.share){
       navigator.share(data).catch(()=>{});
@@ -516,6 +574,7 @@ function handle(action){
   }
 
   if (action === 'restart'){
+    if (typeof gtag === 'function') gtag('event', 'restart');
     state.index = 0;
     state.answers = {};
     state.score = null;
@@ -523,8 +582,16 @@ function handle(action){
     return;
   }
 
-  if (action === 'instagram'){ window.open('https://www.instagram.com/glang.official', '_blank','noopener'); return; }
-  if (action === 'glang'){ openStore(); return; }
+  if (action === 'instagram'){ 
+    if (typeof gtag === 'function') gtag('event', 'external_instagram');
+    window.open('https://www.instagram.com/glang.official', '_blank','noopener');
+    return; 
+  }
+  if (action === 'glang'){ 
+    if (typeof gtag === 'function') gtag('event', 'store_visit', { platform: isIOS()?'ios':'android' });
+    openStore(); 
+    return; 
+  }
 }
 
 /* --------------------------
