@@ -52,12 +52,8 @@
     overflow:visible;           /* body 스크롤 */
     max-height:none !important; /* 아래가 끊기는 현상 방지 */
   }
-  .bg.scroll{
-    background-position:center top;
-  }
-  body.scroll-align-top{
-    align-items:flex-start;
-  }
+  .bg.scroll{ background-position:center top; }
+  body.scroll-align-top{ align-items:flex-start; }
 
   /* 핫스팟 */
   .hotspot{
@@ -314,22 +310,15 @@ function getImageMeta(src){
   });
 }
 
-// /* ✅ “모바일” 판정 (터치 + 좁은 폭) */
-// const MOBILE_QUERY = '(hover: none) and (pointer: coarse) and (max-width: 767px)';
-// function isMobile(){ return window.matchMedia(MOBILE_QUERY).matches; }
-/* ✅ 교체 코드: 사파리/크롬/카톡 인앱 웹뷰까지 안정적으로 모바일 판정 */
 function isMobile(){
   const vw = Math.min(window.innerWidth || 0, document.documentElement.clientWidth || 0);
   const ua = (navigator.userAgent || '').toLowerCase();
 
   const uaMobile =
     /iphone|ipod|ipad|android|mobile/.test(ua) ||
-    /kakaotalk/.test(ua); // ✅ 카톡 인앱 웹뷰 확실히 잡기
+    /kakaotalk/.test(ua);
 
-  // ✅ 핵심: 폭 기반(모바일 뷰포트) + UA 보정
-  // - 보통 폰은 480~430 폭
-  // - 카톡/사파리/크롬 모두 이 기준을 만족
-  return vw <= 767 || (uaMobile && vw <= 900); // iPad 세로/인앱도 커버
+  return vw <= 767 || (uaMobile && vw <= 900);
 }
 
 /**
@@ -355,7 +344,6 @@ function applyBgStyleByMode(mode){
     $bg.style.backgroundPosition = 'center center';
     return;
   }
-  // CONTAIN_CENTER
   $bg.style.backgroundSize = 'contain';
   $bg.style.backgroundPosition = 'center center';
 }
@@ -370,17 +358,16 @@ async function placeOnBg({ stageEl, imgUrl, rectPct, targetEl, mode }){
   if (mode === 'FIT_WIDTH_TOP'){
     scale = sw / meta.w;
     const drawW = meta.w * scale;
-    const drawH = meta.h * scale;
-    offX = Math.round((sw - drawW)/2); // 사실상 0에 가깝지만 안전
-    offY = 0;                           // top
+    offX = Math.round((sw - drawW)/2);
+    offY = 0;
   } else if (mode === 'COVER_CENTER'){
-    scale = Math.max(sw/meta.w, sh/meta.h); // ✅ cover
+    scale = Math.max(sw/meta.w, sh/meta.h);
     const drawW = meta.w * scale;
     const drawH = meta.h * scale;
-    offX = Math.round((sw - drawW)/2);      // center crop
+    offX = Math.round((sw - drawW)/2);
     offY = Math.round((sh - drawH)/2);
   } else { // CONTAIN_CENTER
-    scale = Math.min(sw/meta.w, sh/meta.h); // ✅ contain
+    scale = Math.min(sw/meta.w, sh/meta.h);
     const drawW = meta.w * scale;
     const drawH = meta.h * scale;
     offX = Math.round((sw - drawW)/2);
@@ -464,10 +451,10 @@ async function render(){
   _scoreSpotEl = null;
   _hotspotEls = [];
 
-  // 결과 스크롤 적용(결과만)
+  // ✅ 결과 스크롤 적용(결과만)
   await applyScrollModeIfNeeded();
 
-  // 핫스팟 생성 + 배치
+  // ✅ 핫스팟 생성 + 배치
   for (const h of scr.hotspots){
     const btn = document.createElement('button');
     btn.className = 'hotspot';
@@ -480,7 +467,7 @@ async function render(){
     placeOnBg({ stageEl:$stage, imgUrl:_currentImg, rectPct:h.rect, targetEl:btn, mode });
   }
 
-  // 결과 점수 표시
+  // ✅ 결과 점수 표시
   if (scr.id === 'result' && state.score?.total != null){
     const posPct = RESULT_SCORE_POS_PCT[state.score.key] || RESULT_SCORE_POS_PCT.comp;
     const spot = document.createElement('div');
@@ -496,6 +483,7 @@ async function render(){
   trackScreen();
 }
 
+/* ✅ resize/orientation/pageshow 에서는 "스크롤 모드"까지 재계산 */
 let _relayoutRAF = 0;
 function requestRelayout(){
   cancelAnimationFrame(_relayoutRAF);
@@ -506,7 +494,31 @@ function requestRelayout(){
     const mode = getLayoutMode(scr);
 
     applyBgStyleByMode(mode);
-    await applyScrollModeIfNeeded();
+    await applyScrollModeIfNeeded();  // ✅ 여기서만 스크롤 모드 건드림
+
+    _hotspotEls.forEach(({el, rect})=>{
+      placeOnBg({ stageEl:$stage, imgUrl:_currentImg, rectPct:rect, targetEl:el, mode });
+    });
+
+    if (_scoreSpotEl && scr?.id === 'result' && state.score){
+      const posPct = RESULT_SCORE_POS_PCT[state.score.key] || RESULT_SCORE_POS_PCT.comp;
+      placeOnBg({ stageEl:$stage, imgUrl:_currentImg, rectPct:posPct, targetEl:_scoreSpotEl, mode });
+    }
+  });
+}
+
+/* ✅ iOS/카카오톡 인앱에서 "스크롤 중 튕김" 방지:
+      visualViewport.scroll 에서는 스크롤 모드/height 리셋을 절대 하지 않고, 핫스팟만 재배치 */
+let _reposRAF = 0;
+function requestRepositionOnly(){
+  cancelAnimationFrame(_reposRAF);
+  _reposRAF = requestAnimationFrame(async ()=>{
+    if (!_currentImg) return;
+
+    const scr = screens[state.index];
+    const mode = getLayoutMode(scr);
+
+    applyBgStyleByMode(mode);
 
     _hotspotEls.forEach(({el, rect})=>{
       placeOnBg({ stageEl:$stage, imgUrl:_currentImg, rectPct:rect, targetEl:el, mode });
@@ -524,12 +536,11 @@ window.addEventListener('resize', requestRelayout);
 window.addEventListener('orientationchange', requestRelayout);
 window.addEventListener('pageshow', requestRelayout);
 
-// ✅ iOS Safari/카카오톡 인앱 웹뷰에서 특히 중요 (주소창 높이 변동 대응)
+// ✅ iOS Safari/카카오톡 인앱 웹뷰: 주소창 높이 변동 대응
 if (window.visualViewport){
   visualViewport.addEventListener('resize', requestRelayout);
-  visualViewport.addEventListener('scroll', requestRelayout); // 툴바 접힘/펼침 때 scroll로 변하는 경우도 있음
+  visualViewport.addEventListener('scroll', requestRepositionOnly); // ✅ 핵심: relayout 대신 reposition
 }
-
 
 /* --------------------------
    4) 진행/액션
@@ -569,12 +580,13 @@ function next(){
         result_label: resultLabelByKey(state.score.key)
       });
     }
+
+    // ✅ 결과 진입 시 맨 위로(원하면 유지)
+    window.scrollTo(0,0);
   }
 
   render();
-  trackScreen();
-  requestRelayout(); // ✅ 첫 렌더 직후 실제 viewport 반영해서 START 포함 핫스팟 재보정
-
+  requestRelayout(); // ✅ 첫 렌더 직후 실제 viewport 반영해서 핫스팟 재보정
 }
 
 function handle(action){
@@ -626,10 +638,12 @@ function handle(action){
 
   if (action === 'restart'){
     if (typeof gtag === 'function') gtag('event', 'restart');
+    window.scrollTo(0,0);
     state.index = 0;
     state.answers = {};
     state.score = null;
     render();
+    requestRelayout();
     return;
   }
 
@@ -695,6 +709,7 @@ function resultImageByKey(key){
    6) 시작
 ---------------------------*/
 render();
+requestRelayout();
 </script>
 </body>
 </html>
