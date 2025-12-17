@@ -16,51 +16,47 @@
 <meta property="og:image" content="https://zeroglang.com/og/1200x630.jpg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="글랑 문해력 미니 테스트 – 나의 문해력 캐릭터 찾기" />
 <meta name="twitter:description" content="1분 컷 문해력 테스트 · 어휘/독해/문법/논리 진단 & 6가지 캐릭터 결과" />
 <meta name="twitter:image" content="https://zeroglang.com/og/1200x630.jpg" />
-
 <link rel="canonical" href="https://zeroglang.com/" />
 
 <style>
   :root{ --tap:44px; }
   html,body{height:100%;margin:0;background:#E5E8F1;}
   body{
-    display:flex;align-items:center;justify-content:center;
+    display:flex;
+    align-items:center;
+    justify-content:center;
     min-height:100svh;
   }
 
-  /* ✅ PC에서도 모바일 같은 “비율/폭”로 보이게: 최대 폭을 폰처럼 제한 */
+  /* ✅ PC에서도 폰처럼 보이도록: 폭 제한 + 가운데 정렬 */
   .stage{
     position:relative;
-    width:min(100vw, 430px);   /* ✅ 폰 느낌 */
+    width:min(100vw, 430px);
     height:100svh;
     max-height:1600px;
-    overflow:hidden;
+    overflow:hidden; /* ✅ 기본은 스크롤 없음 */
     background:#E5E8F1;
   }
 
   .bg{
     position:absolute; inset:0;
-    background:#E5E8F1 center/contain no-repeat;
+    background:#E5E8F1 center/contain no-repeat; /* JS가 화면별로 cover/contain/fit-width 설정 */
   }
 
-  /* 🔽 스크롤 모드 */
+  /* ✅ 결과만 스크롤 가능 모드 */
   .stage.scroll{
-    overflow:visible;      /* body 스크롤 */
-    max-height:none !important; /* ✅ 중요: 이미지가 아래에서 끊기는 현상 방지 */
+    overflow:visible;           /* body 스크롤 */
+    max-height:none !important; /* 아래가 끊기는 현상 방지 */
   }
   .bg.scroll{
     background-position:center top;
   }
   body.scroll-align-top{
     align-items:flex-start;
-  }
-
-  @media (orientation: portrait) and (hover: none) and (pointer: coarse){
-    .stage.scroll{ -webkit-overflow-scrolling: touch; }
   }
 
   /* 핫스팟 */
@@ -179,7 +175,6 @@ const RESULT_SCORE_POS_PCT = {
   vocab:     { x:68.5, y:27.5, w:22, h:2.5 },
 };
 
-
 function resultLabelByKey(key){
   return ({
     expression:'표현 크리에이터',
@@ -255,7 +250,6 @@ const screens = [
 
   { id:'result', img:'assets/result/expression.jpg',
     hotspots:[
-      /* ✅ 새 이미지 기준 */
       { id:'share',     label:'SHARE',      rect:box(17.4,44.2,25.9,3.1), on:'share' },
       { id:'restart',   label:'RESTART',    rect:box(55.9,44.2,25.1,3.1), on:'restart' },
       { id:'instagram', label:'Instagram',  rect:box(37.7,92.4,11.9,3.1), on:'instagram' },
@@ -308,7 +302,7 @@ function calcScore(answers){
 }
 
 /* --------------------------
-   2-1) 이미지 메타 & 배치 유틸
+   2-1) 이미지 메타 & 레이아웃 모드
 ---------------------------*/
 const _imgMetaCache = new Map();
 function getImageMeta(src){
@@ -320,16 +314,78 @@ function getImageMeta(src){
   });
 }
 
-/* ✅ contain/fit-width + 중앙/상단 정렬 모두 맞춤 */
-async function placeOnBg({ stageEl, imgUrl, rectPct, targetEl, fitWidth=false, topAligned=false }){
+// /* ✅ “모바일” 판정 (터치 + 좁은 폭) */
+// const MOBILE_QUERY = '(hover: none) and (pointer: coarse) and (max-width: 767px)';
+// function isMobile(){ return window.matchMedia(MOBILE_QUERY).matches; }
+/* ✅ 교체 코드: 사파리/크롬/카톡 인앱 웹뷰까지 안정적으로 모바일 판정 */
+function isMobile(){
+  const vw = Math.min(window.innerWidth || 0, document.documentElement.clientWidth || 0);
+  const ua = (navigator.userAgent || '').toLowerCase();
+
+  const uaMobile =
+    /iphone|ipod|ipad|android|mobile/.test(ua) ||
+    /kakaotalk/.test(ua); // ✅ 카톡 인앱 웹뷰 확실히 잡기
+
+  // ✅ 핵심: 폭 기반(모바일 뷰포트) + UA 보정
+  // - 보통 폰은 480~430 폭
+  // - 카톡/사파리/크롬 모두 이 기준을 만족
+  return vw <= 767 || (uaMobile && vw <= 900); // iPad 세로/인앱도 커버
+}
+
+/**
+ * 레이아웃 정책
+ * - result: fit-width(가로 100%) + top 정렬 + 필요 시 스크롤
+ * - others:
+ *    - 모바일: cover(center) => 양옆 꽉, 위/아래 잘려도 OK
+ *    - PC: contain(center)  => 전체 보이게, 가운데 정렬
+ */
+function getLayoutMode(scr){
+  if (scr?.id === 'result') return 'FIT_WIDTH_TOP';
+  return isMobile() ? 'COVER_CENTER' : 'CONTAIN_CENTER';
+}
+
+function applyBgStyleByMode(mode){
+  if (mode === 'FIT_WIDTH_TOP'){
+    $bg.style.backgroundSize = '100% auto';
+    $bg.style.backgroundPosition = 'center top';
+    return;
+  }
+  if (mode === 'COVER_CENTER'){
+    $bg.style.backgroundSize = 'cover';
+    $bg.style.backgroundPosition = 'center center';
+    return;
+  }
+  // CONTAIN_CENTER
+  $bg.style.backgroundSize = 'contain';
+  $bg.style.backgroundPosition = 'center center';
+}
+
+/* ✅ mode에 맞게 핫스팟 좌표 매핑(cover/contain/fit-width 모두 대응) */
+async function placeOnBg({ stageEl, imgUrl, rectPct, targetEl, mode }){
   const meta = await getImageMeta(imgUrl);
   const sw = stageEl.clientWidth, sh = stageEl.clientHeight;
 
-  const scale = fitWidth ? (sw / meta.w) : Math.min(sw/meta.w, sh/meta.h);
-  const drawW = meta.w * scale, drawH = meta.h * scale;
+  let scale, offX, offY;
 
-  const offX = fitWidth ? 0 : Math.round((sw - drawW)/2);
-  const offY = topAligned ? 0 : Math.round((sh - drawH)/2);
+  if (mode === 'FIT_WIDTH_TOP'){
+    scale = sw / meta.w;
+    const drawW = meta.w * scale;
+    const drawH = meta.h * scale;
+    offX = Math.round((sw - drawW)/2); // 사실상 0에 가깝지만 안전
+    offY = 0;                           // top
+  } else if (mode === 'COVER_CENTER'){
+    scale = Math.max(sw/meta.w, sh/meta.h); // ✅ cover
+    const drawW = meta.w * scale;
+    const drawH = meta.h * scale;
+    offX = Math.round((sw - drawW)/2);      // center crop
+    offY = Math.round((sh - drawH)/2);
+  } else { // CONTAIN_CENTER
+    scale = Math.min(sw/meta.w, sh/meta.h); // ✅ contain
+    const drawW = meta.w * scale;
+    const drawH = meta.h * scale;
+    offX = Math.round((sw - drawW)/2);
+    offY = Math.round((sh - drawH)/2);
+  }
 
   const rx = rectPct.x * meta.w / 100;
   const ry = rectPct.y * meta.h / 100;
@@ -344,42 +400,8 @@ async function placeOnBg({ stageEl, imgUrl, rectPct, targetEl, fitWidth=false, t
   Object.assign(targetEl.style, { left:left+'px', top:top+'px', width:width+'px', height:height+'px' });
 }
 
-/* 모바일 폰에서만 “fit-width(가로 꽉)”로 쓰던 규칙 */
-const FIT_QUERY = '(orientation: portrait) and (hover: none) and (pointer: coarse) and (max-width: 767px)';
-function isFitWidthModeMobile(){ return window.matchMedia(FIT_QUERY).matches; }
-
-/* ✅ 결과 화면은 PC/모바일 모두 fit-width로(길면 스크롤 가능) */
-function fitWidthForScreen(scr){
-  return scr?.id === 'result' ? true : isFitWidthModeMobile();
-}
-
-/* 배경 CSS도 JS에서 같이 맞춤(contain vs 100% auto) */
-function applyBgSizing(scr){
-  if (!scr) return;
-  if (scr.id === 'result'){
-    $bg.style.backgroundSize = '100% auto';
-    $bg.style.backgroundPosition = 'center top';
-  } else {
-    $bg.style.backgroundSize = 'contain';
-    $bg.style.backgroundPosition = 'center center';
-  }
-}
-
-function buildShareData(){
-  const key = state.score?.key;
-  const label = resultLabelByKey(key);
-  const url = 'https://zeroglang.com/';
-  const text = [
-    `나는 ${label}!`,
-    '딱 1분만 투자하면 내 문해력 캐릭터가 뽑힌다!',
-    '결과는 친구랑 공유하고 누가 더 똑똑한지 대결 고고씽~',
-    `👉 테스트하러 가기: ${url}`
-  ].join('\n');
-  return { text };
-}
-
 /* --------------------------
-   스크롤 모드: 결과 이미지가 뷰포트보다 길면 스크롤
+   결과 스크롤: result만 길면 스크롤
 ---------------------------*/
 async function needScrollForResult(stageEl, imgUrl){
   const scr = screens[state.index];
@@ -396,31 +418,28 @@ async function applyScrollModeIfNeeded(){
   const scr = screens[state.index];
   const isResult = scr?.id === 'result';
 
-  // 기본(해제)
+  // 기본 해제
   $stage.classList.remove('scroll');
   $bg.classList.remove('scroll');
   document.body.classList.remove('scroll-align-top');
   $stage.style.height = '100svh';
-  $stage.style.maxHeight = '';        // ✅ 중요: max-height 초기화
+  $stage.style.maxHeight = '';
 
-  if (!isResult) return { topAligned:false };
+  if (!isResult) return;
 
   const mustScroll = await needScrollForResult($stage, scr.img);
-  if (!mustScroll) return { topAligned:false };
+  if (!mustScroll) return;
 
-  // ✅ 스크롤 모드 ON: stage를 실제 렌더 높이로 확장
   const meta = await getImageMeta(scr.img);
   const sw = $stage.clientWidth;
   const scale = sw / meta.w;
   const drawH = Math.round(meta.h * scale);
 
   $stage.style.height = drawH + 'px';
-  $stage.style.maxHeight = 'none';    // ✅ 중요: 이미지 아래가 안 보이는 문제 해결
+  $stage.style.maxHeight = 'none';
   $stage.classList.add('scroll');
   $bg.classList.add('scroll');
   document.body.classList.add('scroll-align-top');
-
-  return { topAligned:true };
 }
 
 /* --------------------------
@@ -437,16 +456,16 @@ async function render(){
   _currentImg = scr.img;
   $bg.style.backgroundImage = `url("${scr.img}")`;
 
-  applyBgSizing(scr);
+  const mode = getLayoutMode(scr);
+  applyBgStyleByMode(mode);
 
   // 초기화
   $stage.querySelectorAll('.hotspot, .spot').forEach(el=>el.remove());
   _scoreSpotEl = null;
   _hotspotEls = [];
 
-  // 스크롤 적용 여부
-  const fit = fitWidthForScreen(scr);
-  const { topAligned } = await applyScrollModeIfNeeded();
+  // 결과 스크롤 적용(결과만)
+  await applyScrollModeIfNeeded();
 
   // 핫스팟 생성 + 배치
   for (const h of scr.hotspots){
@@ -458,7 +477,7 @@ async function render(){
     $stage.appendChild(btn);
 
     _hotspotEls.push({ el:btn, rect:h.rect });
-    placeOnBg({ stageEl:$stage, imgUrl:_currentImg, rectPct:h.rect, targetEl:btn, fitWidth:fit, topAligned });
+    placeOnBg({ stageEl:$stage, imgUrl:_currentImg, rectPct:h.rect, targetEl:btn, mode });
   }
 
   // 결과 점수 표시
@@ -471,30 +490,62 @@ async function render(){
     $stage.appendChild(spot);
     _scoreSpotEl = spot;
 
-    placeOnBg({ stageEl:$stage, imgUrl:_currentImg, rectPct:posPct, targetEl:spot, fitWidth:fit, topAligned });
+    placeOnBg({ stageEl:$stage, imgUrl:_currentImg, rectPct:posPct, targetEl:spot, mode });
   }
 
   trackScreen();
 }
 
-window.addEventListener('resize', async ()=>{
-  if (!_currentImg) return;
+let _relayoutRAF = 0;
+function requestRelayout(){
+  cancelAnimationFrame(_relayoutRAF);
+  _relayoutRAF = requestAnimationFrame(async ()=>{
+    if (!_currentImg) return;
 
-  const scr = screens[state.index];
-  applyBgSizing(scr);
+    const scr = screens[state.index];
+    const mode = getLayoutMode(scr);
 
-  const fit = fitWidthForScreen(scr);
-  const { topAligned } = await applyScrollModeIfNeeded();
+    applyBgStyleByMode(mode);
+    await applyScrollModeIfNeeded();
 
-  _hotspotEls.forEach(({el, rect})=>{
-    placeOnBg({ stageEl:$stage, imgUrl:_currentImg, rectPct:rect, targetEl:el, fitWidth:fit, topAligned });
+    _hotspotEls.forEach(({el, rect})=>{
+      placeOnBg({ stageEl:$stage, imgUrl:_currentImg, rectPct:rect, targetEl:el, mode });
+    });
+
+    if (_scoreSpotEl && scr?.id === 'result' && state.score){
+      const posPct = RESULT_SCORE_POS_PCT[state.score.key] || RESULT_SCORE_POS_PCT.comp;
+      placeOnBg({ stageEl:$stage, imgUrl:_currentImg, rectPct:posPct, targetEl:_scoreSpotEl, mode });
+    }
   });
+}
 
-  if (_scoreSpotEl && scr?.id === 'result' && state.score){
-    const posPct = RESULT_SCORE_POS_PCT[state.score.key] || RESULT_SCORE_POS_PCT.comp;
-    placeOnBg({ stageEl:$stage, imgUrl:_currentImg, rectPct:posPct, targetEl:_scoreSpotEl, fitWidth:fit, topAligned });
-  }
-});
+// ✅ 모든 브라우저 공통
+window.addEventListener('resize', requestRelayout);
+window.addEventListener('orientationchange', requestRelayout);
+window.addEventListener('pageshow', requestRelayout);
+
+// ✅ iOS Safari/카카오톡 인앱 웹뷰에서 특히 중요 (주소창 높이 변동 대응)
+if (window.visualViewport){
+  visualViewport.addEventListener('resize', requestRelayout);
+  visualViewport.addEventListener('scroll', requestRelayout); // 툴바 접힘/펼침 때 scroll로 변하는 경우도 있음
+}
+
+
+/* --------------------------
+   4) 진행/액션
+---------------------------*/
+function buildShareData(){
+  const key = state.score?.key;
+  const label = resultLabelByKey(key);
+  const url = 'https://zeroglang.com/';
+  const text = [
+    `나는 ${label}!`,
+    '딱 1분만 투자하면 내 문해력 캐릭터가 뽑힌다!',
+    '결과는 친구랑 공유하고 누가 더 똑똑한지 대결 고고씽~',
+    `👉 테스트하러 가기: ${url}`
+  ].join('\n');
+  return { text };
+}
 
 function next(){
   state.index++;
@@ -521,6 +572,9 @@ function next(){
   }
 
   render();
+  trackScreen();
+  requestRelayout(); // ✅ 첫 렌더 직후 실제 viewport 반영해서 START 포함 핫스팟 재보정
+
 }
 
 function handle(action){
@@ -593,7 +647,7 @@ function handle(action){
 }
 
 /* --------------------------
-   4) 결과 산출
+   5) 결과 산출
 ---------------------------*/
 function chooseResult(answers){
   const isRight = q => answers[q] === correct[q];
@@ -638,7 +692,7 @@ function resultImageByKey(key){
 }
 
 /* --------------------------
-   5) 시작
+   6) 시작
 ---------------------------*/
 render();
 </script>
