@@ -151,6 +151,15 @@ function isIOS(){
 }
 function openStore(){ window.open(isIOS()?STORE.ios:STORE.android,'_blank','noopener'); }
 
+/* ✅ GA 기록용: 선택지 번호 추출 (a/b/c/d → 1~4, O/X → 1/2) */
+function choiceIndexOfHotspot(h){
+  const m = (h?.id || '').match(/_(a|b|c|d)$/i);
+  if (m) return ({a:1,b:2,c:3,d:4})[m[1].toLowerCase()];
+  if ((h?.id || '').endsWith('_o')) return 1;
+  if ((h?.id || '').endsWith('_x')) return 2;
+  return null;
+}
+
 /* --------------------------
    1) 데이터 (이미지 + 핫스팟)
 ---------------------------*/
@@ -467,7 +476,12 @@ async function render(){
     btn.className = 'hotspot';
     btn.setAttribute('aria-label', h.label || h.id);
     btn.style.borderRadius = '12px';
-    btn.addEventListener('click', ()=>{ if(!LOCK) handle(h.on); });
+
+    // ✅ hotspot 메타를 handle로 같이 넘김 (GA 선택지 기록용)
+    btn.addEventListener('click', ()=>{
+      if(!LOCK) handle(h.on, { screenId: scr.id, hotspot: h });
+    });
+
     $stage.appendChild(btn);
 
     _hotspotEls.push({ el:btn, rect:h.rect });
@@ -622,12 +636,27 @@ function next(){
     screens[state.index].img = resultImg;
     state.score.key = resultKey;
 
+    // ✅ GA4: 퀴즈 완료(점수 + 결과 캐릭터) 기록
     if (typeof gtag === 'function') {
       gtag('event', 'quiz_complete', {
+        quiz_id: 'glang_mini_8q',
         total_correct: state.score.total,
         total_questions: state.score.outOf,
+        score_text: `${state.score.total}/${state.score.outOf}`,
         result_key: state.score.key,
-        result_label: resultLabelByKey(state.score.key)
+        result_label: resultLabelByKey(state.score.key),
+        page_location: location.href
+      });
+
+      // (원하면 별도 이벤트로도 분리 가능)
+      gtag('event', 'quiz_result', {
+        quiz_id: 'glang_mini_8q',
+        total_correct: state.score.total,
+        total_questions: state.score.outOf,
+        score_text: `${state.score.total}/${state.score.outOf}`,
+        result_key: state.score.key,
+        result_label: resultLabelByKey(state.score.key),
+        page_location: location.href
       });
     }
   }
@@ -636,15 +665,21 @@ function next(){
   requestRelayout(); // ✅ 첫 렌더 직후 재보정(START 포함 핫스팟)
 }
 
-function handle(action){
+/* ✅ handle(action, meta) : meta에 hotspot 정보가 들어옴 */
+function handle(action, meta){
   if (!action) return;
 
   if (typeof gtag === 'function') {
-    gtag('event', 'ui_action', { action, page_location: location.href });
+    gtag('event', 'ui_action', {
+      action,
+      screen_id: meta?.screenId || screens[state.index]?.id,
+      hotspot_id: meta?.hotspot?.id || null,
+      page_location: location.href
+    });
   }
 
   if (action === 'next'){
-    if (typeof gtag === 'function') gtag('event', 'start_quiz');
+    if (typeof gtag === 'function') gtag('event', 'start_quiz', { quiz_id:'glang_mini_8q' });
     next();
     return;
   }
@@ -654,11 +689,32 @@ function handle(action){
     const qid = screens[state.index].id;
     state.answers[qid] = val;
 
+    const h = meta?.hotspot;
+    const choice_index = choiceIndexOfHotspot(h); // ✅ 1~4 / OX(1,2)
+    const choice_id = h?.id || null;
+    const choice_label = h?.label || val;
+
     if (Object.prototype.hasOwnProperty.call(correct, qid)){
       const ok = correct[qid] === val;
 
+      // ✅ GA4: "몇번 선택지" + "정답여부" + "선택 텍스트" 기록
       if (typeof gtag === 'function') {
-        gtag('event', 'answer', { qid, value: val, result: ok ? 'correct' : 'wrong' });
+        gtag('event', 'select_choice', {
+          quiz_id: 'glang_mini_8q',
+          question_id: qid,
+          choice_id,
+          choice_index,
+          choice_text: choice_label,
+          is_correct: ok ? 1 : 0,
+          page_location: location.href
+        });
+
+        // (기존 answer 이벤트도 유지하고 싶으면 같이)
+        gtag('event', 'answer', {
+          qid,
+          value: val,
+          result: ok ? 'correct' : 'wrong'
+        });
       }
 
       LOCK = true;
@@ -672,7 +728,14 @@ function handle(action){
   }
 
   if (action === 'share'){
-    if (typeof gtag === 'function') gtag('event', 'share_click');
+    if (typeof gtag === 'function') {
+      gtag('event', 'share_click', {
+        quiz_id:'glang_mini_8q',
+        result_key: state.score?.key || null,
+        score_text: (state.score?.total!=null && state.score?.outOf!=null) ? `${state.score.total}/${state.score.outOf}` : null,
+        page_location: location.href
+      });
+    }
     const data = buildShareData();
     if (navigator.share){
       navigator.share(data).catch(()=>{});
@@ -684,7 +747,7 @@ function handle(action){
   }
 
   if (action === 'restart'){
-    if (typeof gtag === 'function') gtag('event', 'restart');
+    if (typeof gtag === 'function') gtag('event', 'restart', { quiz_id:'glang_mini_8q' });
     state.index = 0;
     state.answers = {};
     state.score = null;
@@ -698,7 +761,7 @@ function handle(action){
   }
 
   if (action === 'instagram'){
-    if (typeof gtag === 'function') gtag('event', 'external_instagram');
+    if (typeof gtag === 'function') gtag('event', 'external_instagram', { page_location: location.href });
     window.open('https://www.instagram.com/glang.official', '_blank','noopener');
     return;
   }
